@@ -245,9 +245,10 @@ tr:hover td { background: var(--green-light); }
         <input type="number" id="floor-area" placeholder="e.g. 145">
       </div>
     </div>
-    <div class="form-grid">
+    <div class="form-grid-3">
       <div class="field"><label>Property Type</label><select id="prop-type"><option>House</option><option>Townhouse</option><option>Apartment</option><option>Unit</option></select></div>
       <div class="field"><label>Condition</label><select id="condition"><option>Excellent</option><option selected>Good</option><option>Fair</option><option>Needs Work</option></select></div>
+      <div class="field"><label>Year Built <span id="year-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label><input type="number" id="year-built" placeholder="e.g. 1960"></div>
     </div>
   </div>
   <div class="card">
@@ -746,7 +747,7 @@ function initAutocomplete() {
     if (suburb) document.getElementById('suburb').value = suburb;
     if (city) document.getElementById('city').value = city;
     // Auto-fetch property data
-    fetchPropertyData(place.formatted_address, suburb);
+    fetchPropertyData(place.formatted_address, suburb, city);
     // Auto-suggest hero images
     suggestPropertyImages(place.formatted_address);
   });
@@ -760,7 +761,7 @@ function buildPropertyValueUrl(streetAddress, suburb, city) {
   return `https://www.propertyvalue.co.nz/?q=${q}`;
 }
 
-async function fetchPropertyData(fullAddress, suburb) {
+async function fetchPropertyData(fullAddress, suburb, city) {
   const banner = document.getElementById('propdata-banner');
   const msg = document.getElementById('propdata-msg');
   if (!fullAddress) return;
@@ -785,14 +786,17 @@ async function fetchPropertyData(fullAddress, suburb) {
   let foundUrl = null;
 
   try {
-    const query = `site:propertyvalue.co.nz "${streetAddress}" "${suburb}"`;
+    const query = `site:propertyvalue.co.nz "${streetAddress}" "${suburb}" "${city}"`;
     const resp = await fetch(`/.netlify/functions/brave-proxy?q=${encodeURIComponent(query)}`);
     if (resp.ok) {
       const data = await resp.json();
       const results = data?.web?.results || [];
       // Find specific property result (ends with numeric ID, not a street listing)
+      // Find the specific property page (has numeric ID at end)
       const pvResult = results.find(r =>
-        r.url && r.url.includes('propertyvalue.co.nz/waikato') && !r.url.includes('?page=') && /\d{6,}$/.test(r.url)
+        r.url && r.url.includes('propertyvalue.co.nz/waikato') && /\d{5,}$/.test(r.url)
+      ) || results.find(r =>
+        r.url && r.url.includes('propertyvalue.co.nz')
       );
       if (pvResult) {
         foundUrl = pvResult.url;
@@ -801,6 +805,9 @@ async function fetchPropertyData(fullAddress, suburb) {
         const bathsM = allText.match(/(\d+)\s*bathroom/); if (bathsM) baths = parseInt(bathsM[1]);
         const parkM = allText.match(/(\d+)\s*parking/);
         if (parkM) { const p=parseInt(parkM[1]); garage = p===0?'none':p===1?'single':'double'; }
+        // Year built — "built in 1960"
+        const yearM = allText.match(/built\s+in\s+(\d{4})/);
+        if (yearM) { const y=parseInt(yearM[1]); if(y>=1800&&y<=2030) { document.getElementById('year-built').value=y; document.getElementById('year-source').innerHTML='<a href="'+foundUrl+'" target="_blank" style="color:var(--green);text-decoration:none">✓ PropertyValue ↗</a>'; } }
       }
     }
   } catch(e) { console.warn('Brave query 1 failed:', e); }
@@ -1100,7 +1107,7 @@ function syncPMProfile() {
 
 function resetAppraisalForm() {
   // Clear address fields
-  const clearIds = ['address','suburb','city','floor-area','appraisal-date'];
+  const clearIds = ['address','suburb','city','floor-area','year-built','appraisal-date'];
   clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   // Reset selects to defaults
   const selectDefaults = {bedrooms:'3', bathrooms:'2', garaging:'single', 'prop-type':'House', condition:'Good'};

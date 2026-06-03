@@ -19,6 +19,8 @@ module.exports = async function(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
  
+  const LINZ_KEY = '91c5396319144ae68853f0de7f653d69';
+ 
   try {
     // ── BRAVE SEARCH ──
     if (service === 'brave') {
@@ -36,11 +38,13 @@ module.exports = async function(req, res) {
       return res.status(200).send(result.body);
     }
  
-    // ── LINZ ADDRESS LOOKUP ──
+    // ── LINZ ADDRESS LOOKUP (NZ Street Address layer-92170) ──
     if (service === 'linz') {
       const address = params.address || '';
       if (!address) return res.status(400).send('Missing address');
-      const linzPath = `/services;key=91c5396319144ae68853f0de7f653d69/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-53353&outputFormat=application/json&count=5&CQL_FILTER=full_address+ILIKE+%27${encodeURIComponent(address)}%25%27`;
+      // Use the correct NZ Street Address layer
+      const filter = `full_address ILIKE '${address}%'`;
+      const linzPath = `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-92170&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(filter)}`;
       const result = await httpsGet({
         hostname: 'data.linz.govt.nz',
         path: linzPath,
@@ -50,14 +54,14 @@ module.exports = async function(req, res) {
       return res.status(200).send(result.body);
     }
  
-    // ── LINZ BUILDING OUTLINES (floor area) ──
+    // ── LINZ BUILDING OUTLINES (floor area) by lat/lng bbox ──
     if (service === 'linz-building') {
-      const lat = params.lat || '';
-      const lng = params.lng || '';
+      const lat = parseFloat(params.lat || '0');
+      const lng = parseFloat(params.lng || '0');
       if (!lat || !lng) return res.status(400).send('Missing lat/lng');
-      const delta = 0.001;
-      const bbox = `${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
-      const linzPath = `/services;key=91c5396319144ae68853f0de7f653d69/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-101290&outputFormat=application/json&count=5&bbox=${bbox},EPSG:4326`;
+      const delta = 0.0005;
+      const bbox = `${lng-delta},${lat-delta},${lng+delta},${lat+delta}`;
+      const linzPath = `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-101290&outputFormat=application%2Fjson&count=10&bbox=${bbox},EPSG:4326`;
       const result = await httpsGet({
         hostname: 'data.linz.govt.nz',
         path: linzPath,
@@ -67,14 +71,14 @@ module.exports = async function(req, res) {
       return res.status(200).send(result.body);
     }
  
-    // ── LINZ PROPERTY TITLES (parcel data) ──
+    // ── LINZ PROPERTY PARCELS by lat/lng bbox ──
     if (service === 'linz-parcel') {
-      const lat = params.lat || '';
-      const lng = params.lng || '';
+      const lat = parseFloat(params.lat || '0');
+      const lng = parseFloat(params.lng || '0');
       if (!lat || !lng) return res.status(400).send('Missing lat/lng');
-      const delta = 0.001;
-      const bbox = `${parseFloat(lng)-delta},${parseFloat(lat)-delta},${parseFloat(lng)+delta},${parseFloat(lat)+delta}`;
-      const linzPath = `/services;key=91c5396319144ae68853f0de7f653d69/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-50804&outputFormat=application/json&count=5&bbox=${bbox},EPSG:4326`;
+      const delta = 0.0005;
+      const bbox = `${lng-delta},${lat-delta},${lng+delta},${lat+delta}`;
+      const linzPath = `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-50804&outputFormat=application%2Fjson&count=10&bbox=${bbox},EPSG:4326`;
       const result = await httpsGet({
         hostname: 'data.linz.govt.nz',
         path: linzPath,
@@ -84,7 +88,7 @@ module.exports = async function(req, res) {
       return res.status(200).send(result.body);
     }
  
-    return res.status(400).send('Unknown service');
+    return res.status(400).json({ error: 'Unknown service' });
  
   } catch(e) {
     return res.status(500).json({ error: e.message });

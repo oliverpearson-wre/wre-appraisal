@@ -226,6 +226,9 @@ select option:disabled { color: #aaa; }
   </div>
   <div class="card">
     <div class="card-title"><i class="ti ti-building"></i> Property Features</div>
+    <div id="pv-verify-note" style="display:none;font-size:11px;color:#888;margin-bottom:14px;padding:8px 12px;background:var(--off-white);border-radius:6px">
+      Data sourced from PropertyValue — verify and edit any field if needed before continuing.
+    </div>
     <div id="propdata-banner" style="display:none;background:var(--green-light);border:1px solid var(--green-mid);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--green-dark);align-items:center;gap:8px">
       <i class="ti ti-sparkles" style="color:var(--green)"></i> <span id="propdata-msg">Fetching property data...</span>
     </div>
@@ -855,15 +858,18 @@ async function fetchPropertyData(fullAddress, suburb, city) {
 
   // Always hide banner - use field-level indicators only
   banner.style.display = 'none';
+  // Show verify note if any data was found
+  const verifyNote = document.getElementById('pv-verify-note');
+  if (verifyNote && (beds || baths)) verifyNote.style.display = 'block';
 
   // Floor area — always prompt manual entry with link
   const floorEl = document.getElementById('floor-area');
   const sizeSource = document.getElementById('size-source');
   if (floorEl && !size) {
-    floorEl.style.borderColor = '#d4ac00';
+    floorEl.style.borderColor = '#dc2626';
     floorEl.style.borderWidth = '2px';
     floorEl.placeholder = 'Enter from PropertyValue ↗';
-    if (sizeSource) sizeSource.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
+    if (sizeSource) sizeSource.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#dc2626;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
   }
 }
 
@@ -880,9 +886,9 @@ function populatePropertyFields(beds, baths, garage, size) {
   }
 
   function highlightMissing(fieldEl, sourceId) {
-    if (fieldEl) { fieldEl.style.borderColor = '#d4ac00'; fieldEl.style.borderWidth = '2px'; }
+    if (fieldEl) { fieldEl.style.borderColor = '#dc2626'; fieldEl.style.borderWidth = '2px'; }
     const src = document.getElementById(sourceId);
-    if (src) src.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
+    if (src) src.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#dc2626;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
   }
 
   if (beds !== null) {
@@ -901,47 +907,46 @@ function populatePropertyFields(beds, baths, garage, size) {
     highlightMissing(bathsEl, 'baths-source');
   }
 
-  if (garage !== null) {
-    for (let opt of garageEl.options) { if (opt.value === garage) { opt.selected = true; break; } }
-    garageEl.style.borderColor = ''; garageEl.style.borderWidth = '';
-    makeSourceLink('garage-source', 'PropertyValue');
-  } else {
-    highlightMissing(garageEl, 'garage-source');
-  }
+  // Garaging — leave blank, too unreliable from snippet
+  highlightMissing(garageEl, 'garage-source');
 
-  // Floor area always needs manual entry
+  // Floor area — always leave blank, enter manually
   const sizeSource = document.getElementById('size-source');
-  sizeEl.style.borderColor = '#d4ac00';
+  sizeEl.style.borderColor = '#dc2626';
   sizeEl.style.borderWidth = '2px';
   sizeEl.placeholder = 'Enter from PropertyValue ↗';
-  if (sizeSource) sizeSource.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
+  if (sizeSource) sizeSource.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#dc2626;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
 }
 // initAutocomplete is called by Google Maps callback
 
-// Override detection for pre-populated property fields
+// Clear red border and source badge when field is edited
 (function() {
   const fields = [
-    { id: 'bedrooms',  sourceId: 'beds-source' },
-    { id: 'bathrooms', sourceId: 'baths-source' },
-    { id: 'garaging',  sourceId: 'garage-source' },
-    { id: 'floor-area',sourceId: 'size-source' },
+    { id: 'bedrooms',   sourceId: 'beds-source' },
+    { id: 'bathrooms',  sourceId: 'baths-source' },
+    { id: 'garaging',   sourceId: 'garage-source' },
+    { id: 'floor-area', sourceId: 'size-source' },
+    { id: 'year-built', sourceId: 'year-source' },
   ];
   fields.forEach(({ id, sourceId }) => {
     const el = document.getElementById(id);
     const src = document.getElementById(sourceId);
-    if (!el || !src) return;
-    el.addEventListener('change', () => {
-      if (src.textContent.includes('PropertyValue')) {
-        src.textContent = '✎ Overridden';
-        src.style.color = '#888';
+    if (!el) return;
+    const clearRed = () => {
+      // Clear red border
+      if (el.style.borderColor === 'rgb(220, 38, 38)' || el.style.borderColor === '#dc2626') {
+        el.style.borderColor = '';
+        el.style.borderWidth = '';
       }
-    });
-    el.addEventListener('input', () => {
-      if (src.textContent.includes('PropertyValue')) {
-        src.textContent = '✎ Overridden';
-        src.style.color = '#888';
+      // Update source badge if was showing manual entry prompt
+      if (src && (src.innerHTML.includes('Enter manually') || src.innerHTML.includes('Overridden'))) {
+        src.innerHTML = '<span style="color:#888;font-size:10px;font-weight:600">✎ Edited</span>';
+      } else if (src && src.innerHTML.includes('PropertyValue')) {
+        src.innerHTML = '<span style="color:#888;font-size:10px;font-weight:600">✎ Overridden</span>';
       }
-    });
+    };
+    el.addEventListener('change', clearRed);
+    el.addEventListener('input', clearRed);
   });
 })();
 
@@ -1161,6 +1166,8 @@ function resetAppraisalForm() {
   if (floorEl) { floorEl.value = ''; floorEl.style.borderColor = ''; floorEl.style.borderWidth = ''; floorEl.placeholder = 'e.g. 145'; }
   const yearEl = document.getElementById('year-built');
   if (yearEl) { yearEl.value = ''; }
+  const verifyNote = document.getElementById('pv-verify-note');
+  if (verifyNote) verifyNote.style.display = 'none';
   // Reset image area
   const drop = document.getElementById('img-drop');
   if (drop) {

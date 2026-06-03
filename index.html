@@ -1157,7 +1157,10 @@ async function fetchPropertyData(fullAddress, streetAddress, suburb, city) {
         if (yearM) {
           const y = parseInt(yearM[1]);
           if (y >= 1800 && y <= 2030) {
-            document.getElementById('year-built').value = y;
+            const yearEl = document.getElementById('year-built');
+            yearEl.value = y;
+            yearEl.style.borderColor = '';
+            yearEl.style.borderWidth = '';
             document.getElementById('year-source').innerHTML =
               `<a href="${foundUrl}" target="_blank" style="color:var(--green);text-decoration:none">✓ PropertyValue ↗</a>`;
           }

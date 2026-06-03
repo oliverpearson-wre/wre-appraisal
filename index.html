@@ -791,7 +791,7 @@ async function fetchPropertyData(fullAddress, suburb, city) {
 
   try {
     const query = `site:propertyvalue.co.nz "${streetAddress}" "${suburbVal}" "${cityVal}"`;
-    const resp = await fetch(`/.netlify/functions/brave-proxy?q=${encodeURIComponent(query)}`);
+    const resp = await fetch(`/api/proxy?q=${encodeURIComponent(query)}`);
     if (resp.ok) {
       const data = await resp.json();
       const results = data?.web?.results || [];

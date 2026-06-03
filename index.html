@@ -778,7 +778,6 @@ async function fetchPropertyData(fullAddress, suburb, city) {
 
   // Build direct PropertyValue URL from address components
   const streetAddress = document.getElementById('address').value;
-  const city = document.getElementById('city').value;
   propertyValueUrl = buildPropertyValueUrl(streetAddress, suburb, city);
 
   // Search PropertyValue for this property

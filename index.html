@@ -717,7 +717,7 @@ function initAutocomplete() {
   }
   const autocomplete = new google.maps.places.Autocomplete(input, {
     componentRestrictions: { country: 'nz' },
-    fields: ['address_components', 'formatted_address', 'geometry'],
+    fields: ['address_components', 'formatted_address'],
     types: ['address']
   });
   autocomplete.addListener('place_changed', () => {
@@ -749,10 +749,6 @@ function initAutocomplete() {
     fetchPropertyData(place.formatted_address, suburb);
     // Auto-suggest hero images
     suggestPropertyImages(place.formatted_address);
-    // Fetch floor area from LINZ building outlines using lat/lng
-    const lat = place.geometry?.location?.lat();
-    const lng = place.geometry?.location?.lng();
-    if (lat && lng) fetchLINZFloorArea(lat, lng);
   });
 }
 
@@ -821,36 +817,22 @@ async function fetchPropertyData(fullAddress, suburb) {
   const pvLink = `<a href="${propertyValueUrl}" target="_blank" style="color:var(--green-dark);font-weight:700;text-decoration:underline">PropertyValue ↗</a>`;
 
   if (beds || baths) {
-    // Show subtle success banner
     banner.style.display = 'flex';
     banner.style.backgroundColor = '#d0edda';
     msg.innerHTML = `✓ Property data loaded from ${pvLink} — edit any field to override.`;
   } else {
-    // No data found — hide banner completely, just highlight fields
     banner.style.display = 'none';
   }
 
-  // Highlight any fields that didn't get data
-  const highlights = [
-    { id: 'bedrooms',   got: beds,   sourceId: 'beds-source' },
-    { id: 'bathrooms',  got: baths,  sourceId: 'baths-source' },
-    { id: 'garaging',   got: garage, sourceId: 'garage-source' },
-    { id: 'floor-area', got: size,   sourceId: 'size-source' },
-  ];
-  highlights.forEach(({ id, got, sourceId }) => {
-    const el = document.getElementById(id);
-    const src = document.getElementById(sourceId);
-    if (!el) return;
-    if (!got && got !== 0) {
-      // Highlight with amber border — field needs manual entry
-      el.style.borderColor = '#d4ac00';
-      el.style.borderWidth = '2px';
-      if (src) src.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
-    } else {
-      el.style.borderColor = '';
-      el.style.borderWidth = '';
-    }
-  });
+  // Floor area — always prompt manual entry with link
+  const floorEl = document.getElementById('floor-area');
+  const sizeSource = document.getElementById('size-source');
+  if (floorEl && !size) {
+    floorEl.style.borderColor = '#d4ac00';
+    floorEl.style.borderWidth = '2px';
+    floorEl.placeholder = 'Enter from PropertyValue ↗';
+    if (sizeSource) sizeSource.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
+  }
 }
 
 function populatePropertyFields(beds, baths, garage, size) {
@@ -1170,57 +1152,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-
-// ── LINZ Building Outline → Floor Area ──
-async function fetchLINZFloorArea(lat, lng) {
-  try {
-    const resp = await fetch(`/api/proxy?service=linz-building&lat=${lat}&lng=${lng}`);
-    if (!resp.ok) return;
-    const data = await resp.json();
-    const features = data?.features || [];
-    if (!features.length) return;
-
-    // Calculate area of each building polygon using Shoelace formula (NZTM coords are in metres)
-    function polygonArea(coords) {
-      let area = 0;
-      const n = coords.length;
-      for (let i = 0; i < n; i++) {
-        const [x1, y1] = coords[i];
-        const [x2, y2] = coords[(i + 1) % n];
-        area += x1 * y2 - x2 * y1;
-      }
-      return Math.abs(area / 2);
-    }
-
-    // Find the largest building (most likely the house)
-    let maxArea = 0;
-    for (const feature of features) {
-      const geom = feature.geometry;
-      if (!geom) continue;
-      let area = 0;
-      if (geom.type === 'Polygon') {
-        area = polygonArea(geom.coordinates[0]);
-      } else if (geom.type === 'MultiPolygon') {
-        area = geom.coordinates.reduce((sum, poly) => sum + polygonArea(poly[0]), 0);
-      }
-      if (area > maxArea) maxArea = area;
-    }
-
-    if (maxArea > 0) {
-      const floorArea = Math.round(maxArea);
-      const sizeEl = document.getElementById('floor-area');
-      const srcEl = document.getElementById('size-source');
-      if (sizeEl && floorArea >= 30 && floorArea <= 1000) {
-        sizeEl.value = floorArea;
-        sizeEl.style.borderColor = 'var(--green)';
-        sizeEl.style.borderWidth = '2px';
-        if (srcEl) srcEl.innerHTML = '<span style="color:var(--green);font-weight:700;font-size:10px">✓ LINZ</span>';
-      }
-    }
-  } catch(e) {
-    console.warn('LINZ floor area fetch failed:', e);
-  }
-}
 </script>
 </body>
 </html>

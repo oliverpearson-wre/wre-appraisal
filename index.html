@@ -1061,10 +1061,11 @@ window.initAutocomplete = function initAutocomplete() {
     if (suburb) document.getElementById('suburb').value = suburb;
     if (city) document.getElementById('city').value = city;
     // Auto-suggest hero images immediately
-    suggestPropertyImages(place.formatted_address);
+    const fullAddress = place.formatted_address;
+    suggestPropertyImages(fullAddress);
     // Delay property data fetch — ensure DOM fields are fully populated first
     setTimeout(() => {
-      // Read from DOM at call time (not from closure at autocomplete time)
+      // Read from DOM at call time (fields are populated above before setTimeout fires)
       const streetAddr = document.getElementById('address').value || fullAddress.split(',')[0].trim();
       const suburbVal  = document.getElementById('suburb').value  || suburb;
       const cityVal    = document.getElementById('city').value    || city;
@@ -1093,6 +1094,20 @@ async function fetchPropertyData(fullAddress, streetAddress, suburb, city) {
   ['beds-source','baths-source','garage-source','size-source','year-source'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.innerHTML = ''; el.onclick = null; }
+  });
+
+  // Immediately mark all property fields as needing manual entry (red border)
+  // They'll be cleared if/when data is found
+  const redFields = ['bedrooms','bathrooms','garaging','floor-area','year-built'];
+  redFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.borderColor = '#dc2626'; el.style.borderWidth = '2px'; }
+  });
+  // Set "Enter manually" badges immediately
+  const pvFallbackUrl = buildPropertyValueUrl(streetAddress || '', suburb || '', city || '');
+  ['beds-source','baths-source','garage-source','size-source','year-source'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<a href="${pvFallbackUrl}" target="_blank" style="color:#dc2626;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
   });
 
   // Read DOM values at call time (most reliable — fields are populated by now)

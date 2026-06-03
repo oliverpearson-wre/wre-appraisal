@@ -360,10 +360,10 @@ select option:disabled { color: #aaa; }
   <div class="card">
     <div class="card-title"><i class="ti ti-chart-line"></i> MBIE Rental Benchmarks — <span id="mkt-suburb">suburb</span></div>
     <div class="metric-row">
-      <div class="metric"><div class="metric-label">Median Rent</div><div class="metric-value" id="med-rent">$720</div><div class="metric-sub">per week</div></div>
-      <div class="metric"><div class="metric-label">Upper Quartile</div><div class="metric-value" id="uq-rent">$780</div><div class="metric-sub">per week</div></div>
-      <div class="metric"><div class="metric-label">Lower Quartile</div><div class="metric-value" id="lq-rent">$660</div><div class="metric-sub">per week</div></div>
-      <div class="metric green-bg"><div class="metric-label">Rent Growth</div><div class="metric-value" id="rent-growth">+4.2%</div><div class="metric-sub">12 months</div></div>
+      <div class="metric"><div class="metric-label">Median Rent</div><div class="metric-value" id="med-rent">—</div><div class="metric-sub">per week</div></div>
+      <div class="metric"><div class="metric-label">Upper Quartile</div><div class="metric-value" id="uq-rent">—</div><div class="metric-sub">per week</div></div>
+      <div class="metric"><div class="metric-label">Lower Quartile</div><div class="metric-value" id="lq-rent">—</div><div class="metric-sub">per week</div></div>
+      <div class="metric green-bg"><div class="metric-label">Rent Growth</div><div class="metric-value" id="rent-growth">—</div><div class="metric-sub">12 months</div></div>
     </div>
     <div style="margin-top:4px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#aaa;margin-bottom:10px">Days on Market — <span id="mkt-suburb2">suburb</span></div>
@@ -378,9 +378,9 @@ select option:disabled { color: #aaa; }
     <div class="card-title"><i class="ti ti-users"></i> Suburb Demographics — Stats NZ</div>
     <div class="market-grid">
       <div>
-        <div class="market-row"><span class="market-label">% Renters</span><span class="market-val" id="pct-renters">38%</span></div>
-        <div class="market-row"><span class="market-label">Population Growth</span><span class="market-val" id="pop-growth">+2.1%</span></div>
-        <div class="market-row"><span class="market-label">Household Income</span><span class="market-val" id="hh-income">$112,000</span></div>
+        <div class="market-row"><span class="market-label">% Renters</span><span class="market-val" id="pct-renters">—</span></div>
+        <div class="market-row"><span class="market-label">Population Growth</span><span class="market-val" id="pop-growth">—</span></div>
+        <div class="market-row"><span class="market-label">Household Income</span><span class="market-val" id="hh-income">—</span></div>
       </div>
       <div>
         <div class="market-row"><span class="market-label">Household Size</span><span class="market-val" id="hh-size">2.8</span></div>
@@ -823,11 +823,7 @@ async function fetchStatsNZ() {
   // Apply defaults immediately so UI is never blank
   const def = suburbDefaults[S.suburb] || {renters:'35%', income:'$105,000', growth:'+1.8%', schools:'—'};
   S.pctRenters = def.renters; S.hhIncome = def.income; S.popGrowth = def.growth; S.schools = def.schools;
-  document.getElementById('pct-renters').textContent = S.pctRenters;
-  document.getElementById('pop-growth').textContent  = S.popGrowth;
-  document.getElementById('hh-income').textContent   = S.hhIncome;
-  document.getElementById('hh-size').textContent     = '2.7';
-  document.getElementById('schools').textContent     = S.schools;
+  // Don't populate UI yet — wait for API attempt first
 
   // Then try to get live data via Brave
   try {
@@ -858,6 +854,12 @@ async function fetchStatsNZ() {
   } catch(e) { console.warn('StatsNZ Brave search failed:', e.message); }
 
   const isDefault = !!suburbDefaults[S.suburb];
+  // Always write to UI — either from live search above or from defaults now
+  document.getElementById('pct-renters').textContent = S.pctRenters;
+  document.getElementById('pop-growth').textContent  = S.popGrowth;
+  document.getElementById('hh-income').textContent   = S.hhIncome;
+  document.getElementById('hh-size').textContent     = '2.7';
+  document.getElementById('schools').textContent     = S.schools;
   setApiStatus(1, isDefault ? 'green' : 'amber',
     isDefault ? `Census 2023 — ${S.suburb} suburb profile` : `Estimated — ${S.suburb} not in local dataset`);
 }

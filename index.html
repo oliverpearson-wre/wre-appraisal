@@ -805,17 +805,47 @@ async function fetchPropertyData(fullAddress, suburb) {
     }
   } catch(e) { console.warn('Brave query 1 failed:', e); }
 
-  // Second query for floor area (not in PropertyValue snippets by default)
+  // Second query for floor area — try homes.co.nz and realestate.co.nz which include it in snippets
   if (!size) {
     try {
-      const q2 = `propertyvalue.co.nz "${streetAddress}" "${suburb}" floor`;
+      const q2 = `"${streetAddress}" "${suburb}" hamilton floor area m2 site:homes.co.nz OR site:realestate.co.nz OR site:oneroof.co.nz`;
       const r2 = await fetch(`/.netlify/functions/brave-proxy?q=${encodeURIComponent(q2)}`);
       if (r2.ok) {
         const d2 = await r2.json();
         for (const r of (d2?.web?.results||[])) {
           const txt = [r.title||'',r.description||'',...(r.extra_snippets||[])].join(' ').toLowerCase();
-          const sizes = [...txt.matchAll(/(\d{2,4})\s*m[²2]/g)].map(m=>parseInt(m[1])).filter(n=>n>=30&&n<=800);
-          if (sizes.length>0) { size=Math.min(...sizes); break; }
+          // Look for floor area patterns — "114 m²", "floor: 114", "114sqm"
+          const floorPatterns = [
+            /floor\s*(?:area)?\s*[:\-]?\s*(\d{2,4})\s*m/,
+            /(\d{2,4})\s*m[²2]\s*(?:floor|living|house)/,
+            /(\d{2,4})\s*sqm/,
+          ];
+          for (const pat of floorPatterns) {
+            const m = txt.match(pat);
+            if (m) { size = parseInt(m[1]); break; }
+          }
+          // Also try all m² values and take smallest
+          if (!size) {
+            const sizes = [...txt.matchAll(/(\d{2,4})\s*m[²2]/g)].map(m=>parseInt(m[1])).filter(n=>n>=40&&n<=600);
+            if (sizes.length>0) size = Math.min(...sizes);
+          }
+          if (size) break;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Third query — try a general search
+  if (!size) {
+    try {
+      const q3 = `"${streetAddress}" "${suburb}" hamilton "floor area" OR "house size" OR "living area"`;
+      const r3 = await fetch(`/.netlify/functions/brave-proxy?q=${encodeURIComponent(q3)}`);
+      if (r3.ok) {
+        const d3 = await r3.json();
+        for (const r of (d3?.web?.results||[])) {
+          const txt = [r.title||'',r.description||'',...(r.extra_snippets||[])].join(' ').toLowerCase();
+          const m = txt.match(/(\d{2,4})\s*m[²2]/) || txt.match(/(\d{2,4})\s*sqm/);
+          if (m) { const v=parseInt(m[1]); if(v>=40&&v<=600){size=v;break;} }
         }
       }
     } catch(e) {}

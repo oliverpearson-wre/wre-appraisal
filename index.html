@@ -827,11 +827,20 @@ async function fetchPropertyData(fullAddress, suburb) {
         if (m) baths = parseInt(m[1]);
       }
 
-      // Extract floor area — patterns: "114 m²", "114m2", "floor: 114"
+      // Extract floor area — find all m² values and take the smallest (floor area not land)
       if (!size) {
-        const m = allText.match(/(\d{2,4})\s*m[²2]/) ||
-                  allText.match(/floor\s*(?:area)?\s*[:\-]\s*(\d+)/);
-        if (m) size = parseInt(m[1]);
+        // First try explicit floor area label
+        const floorMatch = allText.match(/floor\s*(?:area)?\s*[:\-]\s*(\d+)/) ||
+                           allText.match(/(\d{2,4})\s*m[²2]\s*floor/);
+        if (floorMatch) {
+          size = parseInt(floorMatch[1]);
+        } else {
+          // Find all m² values and take the smallest (floor area is smaller than land area)
+          const allSizes = [...allText.matchAll(/(\d{2,4})\s*m[²2]/g)]
+            .map(m => parseInt(m[1]))
+            .filter(n => n >= 30 && n <= 1000);
+          if (allSizes.length > 0) size = Math.min(...allSizes);
+        }
       }
 
       // Extract garage
@@ -894,7 +903,10 @@ function populatePropertyFields(beds, baths, garage, size) {
     for (let opt of garageEl.options) { if (opt.value === garage) { opt.selected = true; break; } }
     makeSourceLink('garage-source', 'PropertyValue');
   } else {
-    // No garage data found — set to none and show link
+    // No garage data — default to None
+    for (let opt of garageEl.options) {
+      if (opt.value === 'none') { opt.selected = true; break; }
+    }
     makeSourceLink('garage-source', 'PropertyValue');
   }
 

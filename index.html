@@ -730,34 +730,46 @@ function setApiStatus(index, dot, note) {
 
 // ── MBIE Rent Benchmarks ──
 async function fetchMBIERent() {
-  setApiStatus(0, 'amber', 'Connecting...');
+  setApiStatus(0, 'amber', 'Connecting to MBIE...');
   try {
-    const resp = await fetch(`/api/proxy?service=mbie-rent&ta=${encodeURIComponent(S.city+' City')}&bedrooms=${S.beds}`);
-    if (resp.ok) {
-      const raw  = await resp.text();
-      const data = JSON.parse(raw);
-      const records = Array.isArray(data) ? data : (data.data || data.records || data.results || data.items || []);
-      if (records.length) {
-        const latest = records[records.length - 1];
-        const med = parseInt(latest.median_rent || latest.medianRent || latest.Median || latest.median || 0);
-        const uq  = parseInt(latest.upper_quartile || latest.upperQuartile || latest.UpperQ || latest.upper_q || 0);
-        const lq  = parseInt(latest.lower_quartile || latest.lowerQuartile || latest.LowerQ || latest.lower_q || 0);
-        if (med > 100) {
-          const prev    = records.length > 4 ? records[records.length - 5] : records[0];
-          const prevMed = parseInt(prev.median_rent || prev.medianRent || prev.Median || prev.median || med);
-          const pct     = prevMed > 0 ? (((med - prevMed) / prevMed) * 100).toFixed(1) : '4.8';
-          applyMBIEData(med, uq || Math.round(med*1.09), lq || Math.round(med*0.91), (pct >= 0 ? '+' : '') + pct + '%');
-          setApiStatus(0, 'green', `Live — MBIE ${S.city} ${S.beds}bd`);
-          return;
-        }
-      }
-    }
-    throw new Error('No usable MBIE data');
+    const city = S.city.includes('City') || S.city.includes('District') ? S.city : S.city + ' City';
+    const resp = await fetch(
+      `/api/proxy?service=mbie-rent&city=${encodeURIComponent(city)}&bedrooms=${S.beds}`,
+      { signal: AbortSignal.timeout(250000) }  // 4 min — first MBIE call can be slow
+    );
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data    = await resp.json();
+    // MBIE response: array of row objects with lq/med/uq fields
+    const items   = Array.isArray(data) ? data : (data.items || data.data || data.results || []);
+    if (!items.length) throw new Error('Empty response');
+
+    // Each item has: area, dwell, nB, nLodged, nClosed, nCurr, mean, lq, med, uq, sd
+    // Filter to House dwelling, sum nCurr-weighted blend across returned rows
+    const rows = items.filter(r => r.med != null && r.nCurr > 0);
+    if (!rows.length) throw new Error('All rows suppressed (< 5 bonds)');
+
+    // Weighted average by nCurr
+    const totalW = rows.reduce((s, r) => s + r.nCurr, 0);
+    const wMed   = Math.round(rows.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
+    const wLq    = Math.round(rows.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
+    const wUq    = Math.round(rows.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
+
+    // Growth: compare most recent vs 12 months ago
+    const sorted  = [...rows].sort((a, b) => (a.period||'').localeCompare(b.period||''));
+    const newest  = sorted[sorted.length - 1];
+    const oldest  = sorted[0];
+    const growth  = oldest.med > 0
+      ? ((newest.med - oldest.med) / oldest.med * 100).toFixed(1)
+      : '4.8';
+
+    applyMBIEData(wMed, wUq, wLq, (parseFloat(growth) >= 0 ? '+' : '') + growth + '%');
+    setApiStatus(0, 'green', `Live — MBIE ${city} ${S.beds}bd · ${rows.length} data points`);
   } catch(e) {
     console.warn('MBIE API failed:', e.message);
     await fetchMBIEViaBrave();
   }
 }
+
 
 async function fetchMBIEViaBrave() {
   // Hamilton bedroom-count benchmarks (sourced from MBIE bond data ~2025)

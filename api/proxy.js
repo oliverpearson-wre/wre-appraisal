@@ -1,6 +1,6 @@
 const https = require('https');
 
-function httpsGet(hostname, path, headers) {
+function httpsGet(hostname, path, headers, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     const req = https.request({ hostname, path, method: 'GET', headers }, (res) => {
       let data = '';
@@ -8,18 +8,49 @@ function httpsGet(hostname, path, headers) {
       res.on('end', () => resolve({ status: res.statusCode, body: data }));
     });
     req.on('error', reject);
-    req.setTimeout(12000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.setTimeout(timeoutMs, () => { req.destroy(); reject(new Error('timeout')); });
     req.end();
   });
 }
 
 const LINZ_KEY    = '91c5396319144ae68853f0de7f653d69';
 const MBIE_KEY    = 'fe60f32fecf24e339f99e7d2b6ce0f82';
-const STATSNZ_KEY = '7971216ae5f34d349d80ce432613a303';
 const BRAVE_KEY   = 'BSAUF6_k-NRyPrB0L-WGkV58i704aeR';
 
+// MBIE area code cache (TA codes don't change — safe to hardcode)
+// From: GET /area-definitions/territorial-authority-2019
+const TA_CODES = {
+  'Hamilton City': '107',
+  'Waikato District': '110',
+  'Waipa District': '111',
+  'Auckland': '076',
+  'Wellington City': '049',
+  'Christchurch City': '065',
+  'Tauranga City': '117',
+  'Dunedin City': '079',
+  'Palmerston North City': '057',
+  'Nelson City': '062',
+};
+
+// Map bedrooms int → MBIE num-bedrooms string
+function bedroomsParam(n) {
+  const b = parseInt(n);
+  if (b >= 5) return '5+';
+  if (b >= 1) return String(b);
+  return 'NA';
+}
+
+// Compute period-ending = today minus 2 months, yyyy-mm
+function periodEnding() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 2);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
 module.exports = async function(req, res) {
-  const params = req.query || {};
+  const params  = req.query || {};
   const service = params.service || 'brave';
 
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,81 +64,62 @@ module.exports = async function(req, res) {
       if (!query) return res.status(400).json({ error: 'Missing query' });
       const result = await httpsGet(
         'api.search.brave.com',
-        `/res/v1/web/search?q=${encodeURIComponent(query)}&count=${params.count||5}`,
+        `/res/v1/web/search?q=${encodeURIComponent(query)}&count=${params.count || 5}`,
         { 'Accept': 'application/json', 'X-Subscription-Token': BRAVE_KEY }
       );
       return res.status(200).send(result.body);
     }
 
     // ── MBIE MARKET RENT ──
-    // Correct endpoint: https://api.mbie.govt.nz/mbie/opendata/v1/rental-bond-data
+    // Correct base: api.business.govt.nz/gateway/tenancy-services/market-rent/v2
     if (service === 'mbie-rent') {
-      const ta       = params.ta       || 'Hamilton City';
-      const bedrooms = params.bedrooms || '';
-
-      // Try the MBIE Tenancy Services rental bond API (correct public endpoint)
-      let path = `/mbie/opendata/v1/rental-bond-data?ta=${encodeURIComponent(ta)}&format=json`;
-      if (bedrooms) path += `&bedrooms=${encodeURIComponent(bedrooms)}`;
-
-      let result = await httpsGet(
-        'api.mbie.govt.nz', path,
-        { 'Accept': 'application/json', 'Ocp-Apim-Subscription-Key': MBIE_KEY }
-      );
-
-      // If that fails, try the market rent summary endpoint
-      if (result.status !== 200) {
-        path = `/mbie/opendata/v1/market-rent-summary?ta=${encodeURIComponent(ta)}&format=json`;
-        result = await httpsGet(
-          'api.mbie.govt.nz', path,
-          { 'Accept': 'application/json', 'Ocp-Apim-Subscription-Key': MBIE_KEY }
-        );
-      }
-
-      // Last resort: try without key (some MBIE endpoints are open)
-      if (result.status !== 200) {
-        path = `/mbie/opendata/v1/rental-bond-data?ta=${encodeURIComponent(ta)}&format=json`;
-        result = await httpsGet(
-          'api.mbie.govt.nz', path,
-          { 'Accept': 'application/json' }
-        );
-      }
-
-      return res.status(result.status).send(result.body);
-    }
-
-    // ── MBIE RENT VIA BRAVE (reliable fallback) ──
-    // Searches for MBIE/Tenancy Services data about specific area
-    if (service === 'mbie-brave') {
-      const suburb   = params.suburb   || '';
-      const city     = params.city     || 'Hamilton';
+      const city     = params.city     || 'Hamilton City';
       const bedrooms = params.bedrooms || '3';
-      const query = `MBIE tenancy bond rent "${city}" ${bedrooms} bedroom median 2025 2026 weekly`;
+      const ta       = city.includes('City') || city.includes('District') ? city : city + ' City';
+      const taCode   = TA_CODES[ta] || TA_CODES[city] || '107'; // default Hamilton City
+
+      const numBedrooms = bedroomsParam(bedrooms);
+      const period      = periodEnding();
+
+      const qs = new URLSearchParams({
+        'period-ending':   period,
+        'num-months':      '12',
+        'area-definition': 'territorial-authority-2019',
+        'area-codes':      taCode,
+        'num-bedrooms':    numBedrooms,
+        'dwelling-type':   'House',
+      }).toString();
+
+      const path   = `/gateway/tenancy-services/market-rent/v2/statistics?${qs}`;
       const result = await httpsGet(
-        'api.search.brave.com',
-        `/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`,
-        { 'Accept': 'application/json', 'X-Subscription-Token': BRAVE_KEY }
+        'api.business.govt.nz', path,
+        {
+          'Accept': 'application/json',
+          'Ocp-Apim-Subscription-Key': MBIE_KEY
+        },
+        240000  // 4 min timeout — first call can be slow
       );
-      return res.status(200).send(result.body);
+
+      return res.status(result.status).send(result.body);
     }
 
-    // ── STATS NZ — Census suburb data via Linked Data API ──
-    // Correct endpoint: https://api.stats.govt.nz/opendata/v1/
-    if (service === 'statsnz') {
-      const dataset = params.dataset || 'CPP2018-CEN2018';
-      const path = `/opendata/v1/dataset/${encodeURIComponent(dataset)}.json?limit=5`;
+    // ── MBIE AREA DEFINITIONS (lookup TA codes) ──
+    if (service === 'mbie-areas') {
+      const defn   = params.defn || 'territorial-authority-2019';
       const result = await httpsGet(
-        'api.stats.govt.nz', path,
-        { 'Accept': 'application/json', 'Ocp-Apim-Subscription-Key': STATSNZ_KEY }
+        'api.business.govt.nz',
+        `/gateway/tenancy-services/market-rent/v2/area-definitions/${defn}`,
+        { 'Accept': 'application/json', 'Ocp-Apim-Subscription-Key': MBIE_KEY },
+        30000
       );
       return res.status(result.status).send(result.body);
     }
 
-    // ── STATS NZ — suburb demographics via Brave ──
+    // ── STATS NZ suburb demographics via Brave ──
     if (service === 'statsnz-suburb') {
       const suburb = params.suburb || 'Flagstaff';
       const city   = params.city   || 'Hamilton';
-      // Search for census suburb profile
-      const query = `"${suburb}" "${city}" census 2023 renters population household income stats.govt.nz OR "Statistics New Zealand"`;
+      const query  = `"${suburb}" "${city}" census 2023 renters population household income stats.govt.nz`;
       const result = await httpsGet(
         'api.search.brave.com',
         `/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`,
@@ -121,22 +133,8 @@ module.exports = async function(req, res) {
       const suburb   = params.suburb   || 'Flagstaff';
       const city     = params.city     || 'Hamilton';
       const bedrooms = params.bedrooms || '3';
-      // More targeted query for actual listings with prices
-      const query = `site:trademe.co.nz/property/rent ${bedrooms}-bedroom ${suburb} ${city} per week`;
-      const result = await httpsGet(
-        'api.search.brave.com',
-        `/res/v1/web/search?q=${encodeURIComponent(query)}&count=10`,
-        { 'Accept': 'application/json', 'X-Subscription-Token': BRAVE_KEY }
-      );
-      return res.status(200).send(result.body);
-    }
-
-    // ── TRADE ME — broader search if suburb yields no results ──
-    if (service === 'trademe-city') {
-      const city     = params.city     || 'Hamilton';
-      const bedrooms = params.bedrooms || '3';
-      const query = `site:trademe.co.nz/property/rent ${bedrooms} bedroom ${city} per week $`;
-      const result = await httpsGet(
+      const query    = `site:trademe.co.nz/property/rent ${suburb} ${city} ${bedrooms} bedroom per week`;
+      const result   = await httpsGet(
         'api.search.brave.com',
         `/res/v1/web/search?q=${encodeURIComponent(query)}&count=10`,
         { 'Accept': 'application/json', 'X-Subscription-Token': BRAVE_KEY }
@@ -149,7 +147,7 @@ module.exports = async function(req, res) {
       const address = params.address || '';
       const suburb  = params.suburb  || '';
       if (!address) return res.status(400).json({ error: 'Missing address' });
-      const query = `site:propertyvalue.co.nz "${address}${suburb ? ', ' + suburb : ''}"`;
+      const query  = `site:propertyvalue.co.nz "${address}${suburb ? ', ' + suburb : ''}"`;
       const result = await httpsGet(
         'api.search.brave.com',
         `/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`,
@@ -162,26 +160,10 @@ module.exports = async function(req, res) {
     if (service === 'linz') {
       const address = params.address || '';
       if (!address) return res.status(400).json({ error: 'Missing address' });
-      const typename = 'data.linz.govt.nz:layer-53353';
-      const filter = `full_address ILIKE '${address}%'`;
-      const result = await httpsGet(
+      const filter  = `full_address ILIKE '${address}%'`;
+      const result  = await httpsGet(
         'data.linz.govt.nz',
-        `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=${encodeURIComponent(typename)}&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(filter)}`,
-        { 'Accept': 'application/json' }
-      );
-      return res.status(200).send(result.body);
-    }
-
-    // ── LINZ BUILDING OUTLINES ──
-    if (service === 'linz-building') {
-      const lat = parseFloat(params.lat || '0');
-      const lng = parseFloat(params.lng || '0');
-      if (!lat || !lng) return res.status(400).json({ error: 'Missing lat/lng' });
-      const delta = 0.0005;
-      const bbox = `${lng-delta},${lat-delta},${lng+delta},${lat+delta}`;
-      const result = await httpsGet(
-        'data.linz.govt.nz',
-        `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=data.linz.govt.nz:layer-101290&outputFormat=application%2Fjson&count=10&bbox=${bbox},EPSG:4326`,
+        `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=data.linz.govt.nz:layer-53353&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(filter)}`,
         { 'Accept': 'application/json' }
       );
       return res.status(200).send(result.body);

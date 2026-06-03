@@ -1,8 +1,10 @@
 const https = require('https');
+const fs    = require('fs');
+const path  = require('path');
 
-function httpsGet(hostname, path, headers, timeoutMs = 30000) {
+function httpsGet(hostname, p, headers, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
-    const req = https.request({ hostname, path, method: 'GET', headers }, (res) => {
+    const req = https.request({ hostname, path: p, method: 'GET', headers }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve({ status: res.statusCode, body: data }));
@@ -13,40 +15,59 @@ function httpsGet(hostname, path, headers, timeoutMs = 30000) {
   });
 }
 
-const LINZ_KEY    = '91c5396319144ae68853f0de7f653d69';
-const MBIE_KEY    = 'fe60f32fecf24e339f99e7d2b6ce0f82';
-const BRAVE_KEY   = 'BSAUF6_k-NRyPrB0L-WGkV58i704aeR';
+const LINZ_KEY  = '91c5396319144ae68853f0de7f653d69';
+const MBIE_KEY  = 'fe60f32fecf24e339f99e7d2b6ce0f82';
+const BRAVE_KEY = 'BSAUF6_k-NRyPrB0L-WGkV58i704aeR';
 
-// MBIE area code cache (TA codes don't change — safe to hardcode)
-// From: GET /area-definitions/territorial-authority-2019
+// TA codes for MBIE area-definition territorial-authority-2019
 const TA_CODES = {
-  'Hamilton City': '107',
-  'Waikato District': '110',
-  'Waipa District': '111',
-  'Auckland': '076',
-  'Wellington City': '049',
-  'Christchurch City': '065',
-  'Tauranga City': '117',
-  'Dunedin City': '079',
-  'Palmerston North City': '057',
-  'Nelson City': '062',
+  'Hamilton City': '107', 'Waikato District': '110', 'Waipa District': '111',
+  'Matamata-Piako District': '112', 'Thames-Coromandel District': '114',
+  'Hauraki District': '108', 'Otorohanga District': '115',
+  'South Waikato District': '116', 'Taupo District': '118',
+  'Waitomo District': '119', 'Auckland': '076', 'Wellington City': '049',
+  'Christchurch City': '065', 'Tauranga City': '117', 'Dunedin City': '079',
+  'Palmerston North City': '057', 'Nelson City': '062',
 };
 
-// Map bedrooms int → MBIE num-bedrooms string
-function bedroomsParam(n) {
-  const b = parseInt(n);
-  if (b >= 5) return '5+';
-  if (b >= 1) return String(b);
-  return 'NA';
+// Normalise city → TA name
+function toTA(city) {
+  if (TA_CODES[city]) return city;
+  const withCity = city + ' City';
+  if (TA_CODES[withCity]) return withCity;
+  return city;
 }
 
-// Compute period-ending = today minus 2 months, yyyy-mm
+// period-ending = today minus 2 months yyyy-mm
 function periodEnding() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 2);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  return `${y}-${m}`;
+  const d = new Date(); d.setMonth(d.getMonth() - 2);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// Normalise bedrooms → MBIE num-bedrooms string
+function bedsParam(n) {
+  const b = parseInt(n); if (b >= 5) return '5+'; if (b >= 1) return String(b); return 'NA';
+}
+
+// Load the static MBIE cache (embedded JSON, updated by warm script)
+let _mbieCache = null;
+function getMBIECache() {
+  if (_mbieCache) return _mbieCache;
+  try {
+    const p = path.join(__dirname, '../data/mbie-waikato.json');
+    _mbieCache = JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch(e) { _mbieCache = {}; }
+  return _mbieCache;
+}
+
+// Look up from static cache: returns { lq, med, uq, nCurr, growth } or null
+function cacheGet(taName, beds) {
+  const cache = getMBIECache();
+  const taCode = TA_CODES[taName];
+  if (!taCode) return null;
+  const row = cache?.[taName]?.[taCode]?.[beds];
+  if (!row || !row.med) return null;
+  return row;
 }
 
 module.exports = async function(req, res) {
@@ -71,47 +92,65 @@ module.exports = async function(req, res) {
     }
 
     // ── MBIE MARKET RENT ──
-    // Correct base: api.business.govt.nz/gateway/tenancy-services/market-rent/v2
+    // 1. Serve instantly from static cache if available
+    // 2. Fall back to live MBIE API if not in cache
     if (service === 'mbie-rent') {
-      const city     = params.city     || 'Hamilton City';
-      const bedrooms = params.bedrooms || '3';
-      const ta       = city.includes('City') || city.includes('District') ? city : city + ' City';
-      const taCode   = TA_CODES[ta] || TA_CODES[city] || '107'; // default Hamilton City
+      const city = params.city || 'Hamilton';
+      const beds = bedsParam(params.bedrooms || '3');
+      const ta   = toTA(city);
+      const meta = getMBIECache()._meta || {};
 
-      const numBedrooms = bedroomsParam(bedrooms);
-      const period      = periodEnding();
+      // Try static cache first — instant response
+      const cached = cacheGet(ta, beds);
+      if (cached) {
+        return res.status(200).json({
+          source:       'cache',
+          generated:    meta.generated || 'unknown',
+          period:       meta.period_ending || 'unknown',
+          ta,
+          beds,
+          lq:     cached.lq,
+          med:    cached.med,
+          uq:     cached.uq,
+          nCurr:  cached.nCurr,
+          growth: cached.growth,
+        });
+      }
 
+      // Not in cache — hit live MBIE API
+      const taCode = TA_CODES[ta] || '107';
       const qs = new URLSearchParams({
-        'period-ending':   period,
+        'period-ending':   periodEnding(),
         'num-months':      '12',
         'area-definition': 'territorial-authority-2019',
         'area-codes':      taCode,
-        'num-bedrooms':    numBedrooms,
+        'num-bedrooms':    beds,
         'dwelling-type':   'House',
       }).toString();
 
-      const path   = `/gateway/tenancy-services/market-rent/v2/statistics?${qs}`;
-      const result = await httpsGet(
-        'api.business.govt.nz', path,
-        {
-          'Accept': 'application/json',
-          'Ocp-Apim-Subscription-Key': MBIE_KEY
-        },
-        240000  // 4 min timeout — first call can be slow
-      );
-
-      return res.status(result.status).send(result.body);
-    }
-
-    // ── MBIE AREA DEFINITIONS (lookup TA codes) ──
-    if (service === 'mbie-areas') {
-      const defn   = params.defn || 'territorial-authority-2019';
       const result = await httpsGet(
         'api.business.govt.nz',
-        `/gateway/tenancy-services/market-rent/v2/area-definitions/${defn}`,
+        `/gateway/tenancy-services/market-rent/v2/statistics?${qs}`,
         { 'Accept': 'application/json', 'Ocp-Apim-Subscription-Key': MBIE_KEY },
-        30000
+        240000
       );
+
+      if (result.status === 200) {
+        const data  = JSON.parse(result.body);
+        const items = Array.isArray(data) ? data : (data.items || data.data || []);
+        const rows  = items.filter(r => r.med != null && r.nCurr > 0);
+        if (rows.length) {
+          const totalW = rows.reduce((s, r) => s + r.nCurr, 0);
+          const wMed   = Math.round(rows.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
+          const wLq    = Math.round(rows.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
+          const wUq    = Math.round(rows.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
+          const sorted = [...rows].sort((a,b) => (a.period||'').localeCompare(b.period||''));
+          const growth = sorted[0].med > 0
+            ? parseFloat(((sorted[sorted.length-1].med - sorted[0].med) / sorted[0].med * 100).toFixed(1))
+            : 4.8;
+          return res.status(200).json({ source:'live', ta, beds, lq:wLq, med:wMed, uq:wUq, nCurr:totalW, growth });
+        }
+      }
       return res.status(result.status).send(result.body);
     }
 
@@ -147,10 +186,9 @@ module.exports = async function(req, res) {
       const address = params.address || '';
       const suburb  = params.suburb  || '';
       if (!address) return res.status(400).json({ error: 'Missing address' });
-      const query  = `site:propertyvalue.co.nz "${address}${suburb ? ', ' + suburb : ''}"`;
-      const result = await httpsGet(
+      const result  = await httpsGet(
         'api.search.brave.com',
-        `/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`,
+        `/res/v1/web/search?q=${encodeURIComponent(`site:propertyvalue.co.nz "${address}${suburb ? ', '+suburb : ''}"`)}&count=5`,
         { 'Accept': 'application/json', 'X-Subscription-Token': BRAVE_KEY }
       );
       return res.status(200).send(result.body);
@@ -160,10 +198,9 @@ module.exports = async function(req, res) {
     if (service === 'linz') {
       const address = params.address || '';
       if (!address) return res.status(400).json({ error: 'Missing address' });
-      const filter  = `full_address ILIKE '${address}%'`;
       const result  = await httpsGet(
         'data.linz.govt.nz',
-        `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=data.linz.govt.nz:layer-53353&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(filter)}`,
+        `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=data.linz.govt.nz:layer-53353&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(`full_address ILIKE '${address}%'`)}`,
         { 'Accept': 'application/json' }
       );
       return res.status(200).send(result.body);

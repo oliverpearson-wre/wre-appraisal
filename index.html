@@ -732,40 +732,24 @@ function setApiStatus(index, dot, note) {
 async function fetchMBIERent() {
   setApiStatus(0, 'amber', 'Connecting to MBIE...');
   try {
-    const city = S.city.includes('City') || S.city.includes('District') ? S.city : S.city + ' City';
-    const resp = await fetch(
-      `/api/proxy?service=mbie-rent&city=${encodeURIComponent(city)}&bedrooms=${S.beds}`,
-      { signal: AbortSignal.timeout(250000) }  // 4 min — first MBIE call can be slow
-    );
+    const city = S.city || 'Hamilton';
+    const resp = await fetch(`/api/proxy?service=mbie-rent&city=${encodeURIComponent(city)}&bedrooms=${S.beds}`);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data    = await resp.json();
-    // MBIE response: array of row objects with lq/med/uq fields
-    const items   = Array.isArray(data) ? data : (data.items || data.data || data.results || []);
-    if (!items.length) throw new Error('Empty response');
+    const d = await resp.json();
 
-    // Each item has: area, dwell, nB, nLodged, nClosed, nCurr, mean, lq, med, uq, sd
-    // Filter to House dwelling, sum nCurr-weighted blend across returned rows
-    const rows = items.filter(r => r.med != null && r.nCurr > 0);
-    if (!rows.length) throw new Error('All rows suppressed (< 5 bonds)');
-
-    // Weighted average by nCurr
-    const totalW = rows.reduce((s, r) => s + r.nCurr, 0);
-    const wMed   = Math.round(rows.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
-    const wLq    = Math.round(rows.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
-    const wUq    = Math.round(rows.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
-
-    // Growth: compare most recent vs 12 months ago
-    const sorted  = [...rows].sort((a, b) => (a.period||'').localeCompare(b.period||''));
-    const newest  = sorted[sorted.length - 1];
-    const oldest  = sorted[0];
-    const growth  = oldest.med > 0
-      ? ((newest.med - oldest.med) / oldest.med * 100).toFixed(1)
-      : '4.8';
-
-    applyMBIEData(wMed, wUq, wLq, (parseFloat(growth) >= 0 ? '+' : '') + growth + '%');
-    setApiStatus(0, 'green', `Live — MBIE ${city} ${S.beds}bd · ${rows.length} data points`);
+    // Proxy returns clean { lq, med, uq, nCurr, growth, source }
+    if (d.med && d.med > 0) {
+      const growth = d.growth >= 0 ? '+' + d.growth + '%' : d.growth + '%';
+      applyMBIEData(d.med, d.uq, d.lq, growth);
+      const src = d.source === 'cache'
+        ? `Cached — MBIE ${city} ${S.beds}bd · updated ${d.generated}`
+        : `Live — MBIE ${city} ${S.beds}bd`;
+      setApiStatus(0, 'green', src);
+      return;
+    }
+    throw new Error('No usable data in response');
   } catch(e) {
-    console.warn('MBIE API failed:', e.message);
+    console.warn('MBIE failed:', e.message);
     await fetchMBIEViaBrave();
   }
 }

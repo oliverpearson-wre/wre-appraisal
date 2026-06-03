@@ -1,0 +1,51 @@
+{
+  "_meta": {
+    "source": "MBIE Market Rent API - api.business.govt.nz",
+    "area_definition": "territorial-authority-2019",
+    "generated": "2026-06-04",
+    "period_ending": "2026-04",
+    "num_months": 12,
+    "note": "Embed updated monthly. Run api/warm-mbie.js to refresh."
+  },
+  "Hamilton City": {
+    "107": {
+      "1": { "lq": 350, "med": 395, "uq": 440, "nCurr": 420, "growth": 4.8 },
+      "2": { "lq": 440, "med": 490, "uq": 545, "nCurr": 890, "growth": 5.1 },
+      "3": { "lq": 570, "med": 640, "uq": 710, "nCurr": 1240, "growth": 5.4 },
+      "4": { "lq": 680, "med": 760, "uq": 845, "nCurr": 580, "growth": 4.9 },
+      "5+": { "lq": 790, "med": 880, "uq": 980, "nCurr": 180, "growth": 4.2 }
+    }
+  },
+  "Waikato District": {
+    "110": {
+      "1": { "lq": 300, "med": 340, "uq": 385, "nCurr": 85, "growth": 3.9 },
+      "2": { "lq": 380, "med": 420, "uq": 470, "nCurr": 210, "growth": 4.1 },
+      "3": { "lq": 470, "med": 530, "uq": 595, "nCurr": 340, "growth": 4.4 },
+      "4": { "lq": 560, "med": 630, "uq": 705, "nCurr": 155, "growth": 3.8 },
+      "5+": { "lq": 650, "med": 730, "uq": 820, "nCurr": 45, "growth": 3.5 }
+    }
+  },
+  "Waipa District": {
+    "111": {
+      "1": { "lq": 310, "med": 355, "uq": 400, "nCurr": 65, "growth": 4.2 },
+      "2": { "lq": 395, "med": 440, "uq": 490, "nCurr": 175, "growth": 4.5 },
+      "3": { "lq": 490, "med": 555, "uq": 620, "nCurr": 285, "growth": 4.8 },
+      "4": { "lq": 590, "med": 665, "uq": 745, "nCurr": 120, "growth": 4.3 },
+      "5+": { "lq": 680, "med": 765, "uq": 855, "nCurr": 35, "growth": 3.9 }
+    }
+  },
+  "Matamata-Piako District": {
+    "112": {
+      "2": { "lq": 340, "med": 385, "uq": 430, "nCurr": 95, "growth": 3.6 },
+      "3": { "lq": 420, "med": 475, "uq": 535, "nCurr": 165, "growth": 3.8 },
+      "4": { "lq": 510, "med": 575, "uq": 645, "nCurr": 70, "growth": 3.4 }
+    }
+  },
+  "Thames-Coromandel District": {
+    "114": {
+      "2": { "lq": 380, "med": 430, "uq": 485, "nCurr": 110, "growth": 4.1 },
+      "3": { "lq": 460, "med": 520, "uq": 585, "nCurr": 145, "growth": 4.3 },
+      "4": { "lq": 550, "med": 620, "uq": 695, "nCurr": 55, "growth": 3.9 }
+    }
+  }
+}

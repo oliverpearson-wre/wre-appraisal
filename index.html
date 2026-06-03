@@ -800,19 +800,34 @@ async function fetchPropertyData(fullAddress, suburb, city) {
       const data = await resp.json();
       const results = data?.web?.results || [];
       // Find specific property result (ends with numeric ID, not a street listing)
-      // Find specific property page - must end with long numeric ID AND description must mention the street address
+      // Find specific property page - must end with long numeric ID
+      // AND the description/URL must start with our exact street address
       const streetNum = streetAddress.match(/^\d+/)?.[0] || '';
+      const streetLower = streetAddress.toLowerCase();
+
       const pvResult = results.find(r => {
         if (!r.url || !r.url.includes('propertyvalue.co.nz/waikato')) return false;
         if (!/\d{7,}$/.test(r.url)) return false; // must have property ID
-        // Check description mentions our specific street number to avoid wrong matches
-        if (streetNum && r.description) {
-          const desc = r.description.toLowerCase();
-          const addr = streetAddress.toLowerCase();
-          if (!desc.includes(addr.toLowerCase()) && !r.url.includes(`/${streetAddress.toLowerCase().replace(/\s+/g,'-')}-`)) return false;
-        }
-        return true;
+
+        // Check description starts with our exact address (not a partial match)
+        const desc = (r.description || '').replace(/<[^>]+>/g,'').toLowerCase().trim();
+        const urlLower = r.url.toLowerCase();
+
+        // Description must begin with our street address
+        if (desc.startsWith(streetLower)) return true;
+
+        // Or URL must contain /NUMBER-streetname- pattern at start
+        const urlStreet = streetLower.replace(/\s+/g, '-');
+        if (urlLower.includes(`/${urlStreet}-`)) return true;
+
+        return false;
       });
+
+      // Use street listing page URL for the ↗ link even if we can't get data
+      if (!pvResult) {
+        const streetPage = results.find(r => r.url && r.url.includes('propertyvalue.co.nz/waikato'));
+        if (streetPage) propertyValueUrl = streetPage.url;
+      }
       if (pvResult) {
         foundUrl = pvResult.url;
         const allText = [pvResult.title||'', pvResult.description||'', ...(pvResult.extra_snippets||[])].join(' ').toLowerCase();

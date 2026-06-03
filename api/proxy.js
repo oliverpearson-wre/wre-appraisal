@@ -38,13 +38,13 @@ module.exports = async function(req, res) {
       return res.status(200).send(result.body);
     }
  
-    // ── LINZ ADDRESS LOOKUP (NZ Street Address layer-92170) ──
+    // ── LINZ ADDRESS LOOKUP (NZ Street Address layer-3353) ──
     if (service === 'linz') {
       const address = params.address || '';
       if (!address) return res.status(400).send('Missing address');
       // Use the correct NZ Street Address layer
       const filter = `full_address ILIKE '${address}%'`;
-      const linzPath = `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-92170&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(filter)}`;
+      const linzPath = `/services;key=${LINZ_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-3353&outputFormat=application%2Fjson&count=5&CQL_FILTER=${encodeURIComponent(filter)}`;
       const result = await httpsGet({
         hostname: 'data.linz.govt.nz',
         path: linzPath,

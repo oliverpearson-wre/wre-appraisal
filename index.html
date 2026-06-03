@@ -780,87 +780,48 @@ async function fetchPropertyData(fullAddress, suburb) {
   const city = document.getElementById('city').value;
   propertyValueUrl = buildPropertyValueUrl(streetAddress, suburb, city);
 
-  // Try multiple Brave Search queries to maximise chance of finding data
-  const queries = [
-    `site:propertyvalue.co.nz "${streetAddress}" "${suburb}"`,
-    `site:propertyvalue.co.nz "${streetAddress}" hamilton`,
-    `"${streetAddress}" "${suburb}" propertyvalue.co.nz bedrooms`
-  ];
-
+  // Search PropertyValue for this property
   let beds = null, baths = null, garage = null, size = null;
   let foundUrl = null;
 
-  for (const query of queries) {
-    try {
-      const resp = await fetch(
-        `/.netlify/functions/brave-proxy?q=${encodeURIComponent(query)}`
-      );
-      if (!resp.ok) continue;
+  try {
+    const query = `site:propertyvalue.co.nz "${streetAddress}" "${suburb}"`;
+    const resp = await fetch(`/.netlify/functions/brave-proxy?q=${encodeURIComponent(query)}`);
+    if (resp.ok) {
       const data = await resp.json();
       const results = data?.web?.results || [];
-
-      // Find best PropertyValue result
-      const pvResult = results.find(r => r.url && r.url.includes('propertyvalue.co.nz/waikato'));
-      if (!pvResult) continue;
-
-      // Use the actual URL found
-      foundUrl = pvResult.url;
-
-      // Combine all text fields for parsing
-      const allText = [
-        pvResult.title || '',
-        pvResult.description || '',
-        ...(pvResult.extra_snippets || [])
-      ].join(' ').toLowerCase();
-
-      // Extract beds — patterns: "3 bed", "3 bedroom", "bedrooms: 3", "3br"
-      if (!beds) {
-        const m = allText.match(/(\d+)\s*(?:bed(?:room)?s?|br)/) ||
-                  allText.match(/bed(?:room)?s?\s*[:\-]\s*(\d+)/);
-        if (m) beds = parseInt(m[1]);
+      // Find specific property result (ends with numeric ID, not a street listing)
+      const pvResult = results.find(r =>
+        r.url && r.url.includes('propertyvalue.co.nz/waikato') && !r.url.includes('?page=') && /\d{6,}$/.test(r.url)
+      );
+      if (pvResult) {
+        foundUrl = pvResult.url;
+        const allText = [pvResult.title||'', pvResult.description||'', ...(pvResult.extra_snippets||[])].join(' ').toLowerCase();
+        const bedsM = allText.match(/(\d+)\s*bedroom/); if (bedsM) beds = parseInt(bedsM[1]);
+        const bathsM = allText.match(/(\d+)\s*bathroom/); if (bathsM) baths = parseInt(bathsM[1]);
+        const parkM = allText.match(/(\d+)\s*parking/);
+        if (parkM) { const p=parseInt(parkM[1]); garage = p===0?'none':p===1?'single':'double'; }
       }
+    }
+  } catch(e) { console.warn('Brave query 1 failed:', e); }
 
-      // Extract baths — patterns: "2 bath", "2 bathroom", "bathrooms: 2"
-      if (!baths) {
-        const m = allText.match(/(\d+)\s*bath(?:room)?s?/) ||
-                  allText.match(/bath(?:room)?s?\s*[:\-]\s*(\d+)/);
-        if (m) baths = parseInt(m[1]);
-      }
-
-      // Extract floor area — find all m² values and take the smallest (floor area not land)
-      if (!size) {
-        // First try explicit floor area label
-        const floorMatch = allText.match(/floor\s*(?:area)?\s*[:\-]\s*(\d+)/) ||
-                           allText.match(/(\d{2,4})\s*m[²2]\s*floor/);
-        if (floorMatch) {
-          size = parseInt(floorMatch[1]);
-        } else {
-          // Find all m² values and take the smallest (floor area is smaller than land area)
-          const allSizes = [...allText.matchAll(/(\d{2,4})\s*m[²2]/g)]
-            .map(m => parseInt(m[1]))
-            .filter(n => n >= 30 && n <= 1000);
-          if (allSizes.length > 0) size = Math.min(...allSizes);
+  // Second query for floor area (not in PropertyValue snippets by default)
+  if (!size) {
+    try {
+      const q2 = `propertyvalue.co.nz "${streetAddress}" "${suburb}" floor`;
+      const r2 = await fetch(`/.netlify/functions/brave-proxy?q=${encodeURIComponent(q2)}`);
+      if (r2.ok) {
+        const d2 = await r2.json();
+        for (const r of (d2?.web?.results||[])) {
+          const txt = [r.title||'',r.description||'',...(r.extra_snippets||[])].join(' ').toLowerCase();
+          const sizes = [...txt.matchAll(/(\d{2,4})\s*m[²2]/g)].map(m=>parseInt(m[1])).filter(n=>n>=30&&n<=800);
+          if (sizes.length>0) { size=Math.min(...sizes); break; }
         }
       }
-
-      // Extract garage
-      if (!garage) {
-        if (allText.match(/double\s*garage/)) garage = 'double';
-        else if (allText.match(/single\s*garage/)) garage = 'single';
-        else if (allText.match(/carport/)) garage = 'carport';
-        else if (allText.match(/2\s*garage/)) garage = 'double';
-        else if (allText.match(/1\s*garage/)) garage = 'single';
-      }
-
-      // If we found something useful, stop querying
-      if (beds || baths || size) break;
-
-    } catch(e) {
-      console.warn('Brave query failed:', query, e);
-    }
+    } catch(e) {}
   }
 
-  // Use found URL if Brave located the page, otherwise use our constructed URL
+    // Use found URL if Brave located the page, otherwise use our constructed URL
   if (foundUrl) propertyValueUrl = foundUrl;
 
   // Populate whatever we found

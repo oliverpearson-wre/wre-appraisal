@@ -311,9 +311,10 @@ select option:disabled { color: #aaa; }
         <div style="font-size:11px;font-weight:700;color:var(--green);margin-top:6px" id="pm-preview-name">Your Name</div>
       </div>
       <div style="flex:1">
-        <div style="font-size:12px;color:#aaa;margin-bottom:10px">Details pull from <strong style="color:var(--green)">Settings → Property Manager</strong></div>
+        <div style="font-size:11px;color:#bbb;margin-bottom:10px">Details from <a onclick="showView('settings')" style="color:#bbb;cursor:pointer;text-decoration:underline">Settings → Property Manager</a></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div><div style="font-size:11px;font-weight:700;color:var(--charcoal);margin-bottom:2px">Name</div><div style="font-size:13px;color:var(--body)" id="pm-display-name">—</div></div>
+          <div><div style="font-size:11px;font-weight:700;color:var(--charcoal);margin-bottom:2px">Title</div><div style="font-size:13px;color:var(--body)" id="pm-display-title">—</div></div>
           <div><div style="font-size:11px;font-weight:700;color:var(--charcoal);margin-bottom:2px">Email</div><div style="font-size:13px;color:var(--body)" id="pm-display-email">—</div></div>
           <div><div style="font-size:11px;font-weight:700;color:var(--charcoal);margin-bottom:2px">Phone</div><div style="font-size:13px;color:var(--body)" id="pm-display-phone">—</div></div>
         </div>
@@ -1430,10 +1431,12 @@ function loadPMProfile() {
 
 function syncPMProfile() {
   const name  = document.getElementById('setting-pm-name')?.value  || '';
+  const title = document.getElementById('setting-pm-title')?.value || '';
   const email = document.getElementById('setting-pm-email')?.value || '';
   const phone = document.getElementById('setting-pm-phone')?.value || '';
 
   const dispName     = document.getElementById('pm-display-name');
+  const dispTitle    = document.getElementById('pm-display-title');
   const dispEmail    = document.getElementById('pm-display-email');
   const dispPhone    = document.getElementById('pm-display-phone');
   const prevName     = document.getElementById('pm-preview-name');
@@ -1441,6 +1444,7 @@ function syncPMProfile() {
   const prevPhoto    = document.getElementById('pm-preview-photo');
 
   if (dispName)  dispName.textContent  = name  || '—';
+  if (dispTitle) dispTitle.textContent = title || '—';
   if (dispEmail) dispEmail.textContent = email || '—';
   if (dispPhone) dispPhone.textContent = phone || '—';
   if (prevName)  prevName.textContent  = name  || 'Your Name';

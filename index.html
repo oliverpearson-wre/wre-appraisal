@@ -792,18 +792,27 @@ async function fetchPropertyData(fullAddress, suburb, city) {
   let foundUrl = null;
 
   try {
-    const query = `site:propertyvalue.co.nz "${streetAddress}" "${suburbVal}" "${cityVal}"`;
+    // Search for the complete address as one phrase for strict matching
+    const fullSearchAddr = `${streetAddress}, ${suburbVal}`;
+    const query = `site:propertyvalue.co.nz "${fullSearchAddr}"`;
     const resp = await fetch(`/api/proxy?q=${encodeURIComponent(query)}`);
     if (resp.ok) {
       const data = await resp.json();
       const results = data?.web?.results || [];
       // Find specific property result (ends with numeric ID, not a street listing)
-      // Find specific property page - must end with long numeric ID (not a street listing)
-      const pvResult = results.find(r =>
-        r.url &&
-        r.url.includes('propertyvalue.co.nz/waikato') &&
-        /\d{7,}$/.test(r.url) // property IDs are 7+ digits
-      );
+      // Find specific property page - must end with long numeric ID AND description must mention the street address
+      const streetNum = streetAddress.match(/^\d+/)?.[0] || '';
+      const pvResult = results.find(r => {
+        if (!r.url || !r.url.includes('propertyvalue.co.nz/waikato')) return false;
+        if (!/\d{7,}$/.test(r.url)) return false; // must have property ID
+        // Check description mentions our specific street number to avoid wrong matches
+        if (streetNum && r.description) {
+          const desc = r.description.toLowerCase();
+          const addr = streetAddress.toLowerCase();
+          if (!desc.includes(addr.toLowerCase()) && !r.url.includes(`/${streetAddress.toLowerCase().replace(/\s+/g,'-')}-`)) return false;
+        }
+        return true;
+      });
       if (pvResult) {
         foundUrl = pvResult.url;
         const allText = [pvResult.title||'', pvResult.description||'', ...(pvResult.extra_snippets||[])].join(' ').toLowerCase();

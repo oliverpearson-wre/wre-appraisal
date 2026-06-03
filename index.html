@@ -167,7 +167,7 @@ tr:hover td { background: var(--green-light); }
 .settings-section-title { font-size: 17px; font-weight: 800; color: var(--charcoal); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--off-white); }
 .actions-bar { display: flex; gap: 12px; align-items: center; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--off-white); }
 </style>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqQh1L5I9UDBVKreN3epnL9jQi4r-7yvY&libraries=places&v=weekly&region=NZ" defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqQh1L5I9UDBVKreN3epnL9jQi4r-7yvY&libraries=places&v=weekly&region=NZ&callback=initAutocomplete" async></script>
 </head>
 <body>
 
@@ -710,7 +710,7 @@ document.getElementById('appraisal-date').value=new Date().toISOString().split('
 updateFinancials();
 
 // Google Places Autocomplete
-function initAutocomplete() {
+window.initAutocomplete = function initAutocomplete() {
   const input = document.getElementById('address');
   if (!input || typeof google === 'undefined' || !google.maps.places) {
     setTimeout(initAutocomplete, 300);
@@ -880,11 +880,7 @@ function populatePropertyFields(beds, baths, garage, size) {
     makeSourceLink('size-source', 'PropertyValue');
   }
 }
-// Call on window load to ensure Google Maps script is ready
-window.addEventListener('load', function() {
-  setTimeout(initAutocomplete, 100);
-});
-window.initAutocomplete = initAutocomplete;
+// initAutocomplete is called by Google Maps callback
 
 // Override detection for pre-populated property fields
 (function() {

@@ -166,6 +166,8 @@ tr:hover td { background: var(--green-light); }
 .page-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin-bottom: 16px; }
 .settings-section-title { font-size: 17px; font-weight: 800; color: var(--charcoal); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--off-white); }
 .actions-bar { display: flex; gap: 12px; align-items: center; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--off-white); }
+.field-empty input, .field-empty select { border-color: var(--border) !important; border-width: 1.5px !important; }
+select option:disabled { color: #aaa; }
 </style>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqQh1L5I9UDBVKreN3epnL9jQi4r-7yvY&libraries=places&v=weekly&region=NZ&callback=initAutocomplete" async></script>
 </head>
@@ -218,7 +220,7 @@ tr:hover td { background: var(--green-light); }
     <div class="card-title"><i class="ti ti-map-pin"></i> Property Address</div>
     <div class="form-grid">
       <div class="field span-2"><label>Street Address</label><input type="text" id="address" placeholder="Start typing an address..." autocomplete="off"></div>
-      <div class="field"><label>Suburb</label><input type="text" id="suburb" placeholder="e.g. Flagstaff"></div>
+      <div class="field"><label>Suburb</label><input type="text" id="suburb" placeholder=""></div>
       <div class="field"><label>City</label><input type="text" id="city" placeholder="Hamilton" value="Hamilton"></div>
     </div>
   </div>
@@ -230,15 +232,15 @@ tr:hover td { background: var(--green-light); }
     <div class="form-grid-4" style="margin-bottom:16px">
       <div class="field">
         <label>Bedrooms <span id="beds-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label>
-        <select id="bedrooms"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+        <select id="bedrooms"><option value="" selected disabled>—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
       </div>
       <div class="field">
         <label>Bathrooms <span id="baths-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label>
-        <select id="bathrooms"><option>1</option><option selected>2</option><option>3</option></select>
+        <select id="bathrooms"><option value="" selected disabled>—</option><option>1</option><option>2</option><option>3</option></select>
       </div>
       <div class="field">
         <label>Garaging <span id="garage-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label>
-        <select id="garaging"><option value="none">None</option><option value="carport">Carport</option><option value="single" selected>Single Garage</option><option value="double">Double Garage</option></select>
+        <select id="garaging"><option value="" selected disabled>—</option><option value="none">None</option><option value="carport">Carport</option><option value="single">Single Garage</option><option value="double">Double Garage</option></select>
       </div>
       <div class="field">
         <label>Floor Area (m²) <span id="size-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label>
@@ -796,11 +798,11 @@ async function fetchPropertyData(fullAddress, suburb, city) {
       const data = await resp.json();
       const results = data?.web?.results || [];
       // Find specific property result (ends with numeric ID, not a street listing)
-      // Find the specific property page (has numeric ID at end)
+      // Find specific property page - must end with long numeric ID (not a street listing)
       const pvResult = results.find(r =>
-        r.url && r.url.includes('propertyvalue.co.nz/waikato') && /\d{5,}$/.test(r.url)
-      ) || results.find(r =>
-        r.url && r.url.includes('propertyvalue.co.nz')
+        r.url &&
+        r.url.includes('propertyvalue.co.nz/waikato') &&
+        /\d{7,}$/.test(r.url) // property IDs are 7+ digits
       );
       if (pvResult) {
         foundUrl = pvResult.url;
@@ -827,13 +829,8 @@ async function fetchPropertyData(fullAddress, suburb, city) {
   // Show result banner
   const pvLink = `<a href="${propertyValueUrl}" target="_blank" style="color:var(--green-dark);font-weight:700;text-decoration:underline">PropertyValue ↗</a>`;
 
-  if (beds || baths) {
-    banner.style.display = 'flex';
-    banner.style.backgroundColor = '#d0edda';
-    msg.innerHTML = `✓ Property data loaded from ${pvLink} — edit any field to override.`;
-  } else {
-    banner.style.display = 'none';
-  }
+  // Always hide banner - use field-level indicators only
+  banner.style.display = 'none';
 
   // Floor area — always prompt manual entry with link
   const floorEl = document.getElementById('floor-area');
@@ -855,34 +852,45 @@ function populatePropertyFields(beds, baths, garage, size) {
   function makeSourceLink(id, label) {
     const el = document.getElementById(id);
     if (!el) return;
-    el.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:var(--green);text-decoration:none;font-weight:700" title="View on PropertyValue">✓ ${label} ↗</a>`;
+    el.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:var(--green);text-decoration:none;font-weight:700;font-size:10px" title="View on PropertyValue">✓ ${label} ↗</a>`;
+  }
+
+  function highlightMissing(fieldEl, sourceId) {
+    if (fieldEl) { fieldEl.style.borderColor = '#d4ac00'; fieldEl.style.borderWidth = '2px'; }
+    const src = document.getElementById(sourceId);
+    if (src) src.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
   }
 
   if (beds !== null) {
     for (let opt of bedsEl.options) { if (parseInt(opt.value) === beds) { opt.selected = true; break; } }
+    bedsEl.style.borderColor = ''; bedsEl.style.borderWidth = '';
     makeSourceLink('beds-source', 'PropertyValue');
+  } else {
+    highlightMissing(bedsEl, 'beds-source');
   }
 
   if (baths !== null) {
     for (let opt of bathsEl.options) { if (parseInt(opt.value) === baths) { opt.selected = true; break; } }
+    bathsEl.style.borderColor = ''; bathsEl.style.borderWidth = '';
     makeSourceLink('baths-source', 'PropertyValue');
+  } else {
+    highlightMissing(bathsEl, 'baths-source');
   }
 
   if (garage !== null) {
     for (let opt of garageEl.options) { if (opt.value === garage) { opt.selected = true; break; } }
+    garageEl.style.borderColor = ''; garageEl.style.borderWidth = '';
     makeSourceLink('garage-source', 'PropertyValue');
   } else {
-    // No garage data — default to None
-    for (let opt of garageEl.options) {
-      if (opt.value === 'none') { opt.selected = true; break; }
-    }
-    makeSourceLink('garage-source', 'PropertyValue');
+    highlightMissing(garageEl, 'garage-source');
   }
 
-  if (size !== null) {
-    sizeEl.value = size;
-    makeSourceLink('size-source', 'PropertyValue');
-  }
+  // Floor area always needs manual entry
+  const sizeSource = document.getElementById('size-source');
+  sizeEl.style.borderColor = '#d4ac00';
+  sizeEl.style.borderWidth = '2px';
+  sizeEl.placeholder = 'Enter from PropertyValue ↗';
+  if (sizeSource) sizeSource.innerHTML = `<a href="${propertyValueUrl}" target="_blank" style="color:#d4ac00;font-weight:600;font-size:10px;text-decoration:none">Enter manually ↗</a>`;
 }
 // initAutocomplete is called by Google Maps callback
 
@@ -1110,11 +1118,25 @@ function resetAppraisalForm() {
   const clearIds = ['address','suburb','city','floor-area','year-built','appraisal-date'];
   clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   // Reset selects to defaults
-  const selectDefaults = {bedrooms:'3', bathrooms:'2', garaging:'single', 'prop-type':'House', condition:'Good'};
-  Object.entries(selectDefaults).forEach(([id, val]) => {
+  // Reset dropdowns to blank placeholder
+  ['bedrooms','bathrooms','garaging'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { for (let o of el.options) { if (o.value === val || o.text === val) { o.selected = true; break; } } }
+    if (el) { el.selectedIndex = 0; el.style.borderColor = ''; el.style.borderWidth = ''; }
   });
+  // Reset prop-type and condition to defaults
+  const propType = document.getElementById('prop-type');
+  if (propType) { for (let o of propType.options) { if (o.text === 'House') { o.selected = true; break; } } }
+  const condition = document.getElementById('condition');
+  if (condition) { for (let o of condition.options) { if (o.text === 'Good') { o.selected = true; break; } } }
+  // Clear source badges
+  ['beds-source','baths-source','garage-source','size-source','year-source'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
+  });
+  // Reset floor area
+  const floorEl = document.getElementById('floor-area');
+  if (floorEl) { floorEl.value = ''; floorEl.style.borderColor = ''; floorEl.style.borderWidth = ''; floorEl.placeholder = 'e.g. 145'; }
+  const yearEl = document.getElementById('year-built');
+  if (yearEl) { yearEl.value = ''; }
   // Reset image area
   const drop = document.getElementById('img-drop');
   if (drop) {

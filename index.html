@@ -755,13 +755,9 @@ function initAutocomplete() {
 let propertyValueUrl = '';
 
 function buildPropertyValueUrl(streetAddress, suburb, city) {
-  // PropertyValue URL pattern: /address/[number]-[street]-[suburb]
-  // e.g. /address/8-ohaupo-road-hamilton-lake
-  const clean = (s) => (s || '').toLowerCase().trim()
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, '-');
-  const parts = [clean(streetAddress), clean(suburb)].filter(Boolean);
-  return `https://www.propertyvalue.co.nz/address/${parts.join('-')}`;
+  // Fall back to search page since URL requires unique property ID
+  const q = encodeURIComponent(`${streetAddress} ${suburb} ${city}`);
+  return `https://www.propertyvalue.co.nz/?q=${q}`;
 }
 
 async function fetchPropertyData(fullAddress, suburb) {
@@ -786,9 +782,9 @@ async function fetchPropertyData(fullAddress, suburb) {
 
   // Try multiple Brave Search queries to maximise chance of finding data
   const queries = [
-    `"${streetAddress}" "${suburb}" site:propertyvalue.co.nz`,
-    `"${streetAddress}" propertyvalue.co.nz bedrooms bathrooms`,
-    `propertyvalue.co.nz "${streetAddress}" floor area`
+    `site:propertyvalue.co.nz "${streetAddress}" "${suburb}"`,
+    `site:propertyvalue.co.nz "${streetAddress}" hamilton`,
+    `"${streetAddress}" "${suburb}" propertyvalue.co.nz bedrooms`
   ];
 
   let beds = null, baths = null, garage = null, size = null;
@@ -804,7 +800,7 @@ async function fetchPropertyData(fullAddress, suburb) {
       const results = data?.web?.results || [];
 
       // Find best PropertyValue result
-      const pvResult = results.find(r => r.url && r.url.includes('propertyvalue.co.nz/address'));
+      const pvResult = results.find(r => r.url && r.url.includes('propertyvalue.co.nz/waikato'));
       if (!pvResult) continue;
 
       // Use the actual URL found

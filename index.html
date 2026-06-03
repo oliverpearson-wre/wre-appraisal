@@ -251,9 +251,9 @@ select option:disabled { color: #aaa; }
       </div>
     </div>
     <div class="form-grid-3">
-      <div class="field"><label>Property Type</label><select id="prop-type"><option>House</option><option>Townhouse</option><option>Apartment</option><option>Unit</option></select></div>
-      <div class="field"><label>Condition</label><select id="condition"><option>Excellent</option><option selected>Good</option><option>Fair</option><option>Needs Work</option></select></div>
-      <div class="field"><label>Year Built <span id="year-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label><input type="number" id="year-built" placeholder="e.g. 1960"></div>
+      <div class="field"><label>Property Type</label><select id="prop-type" style="border-color:#dc2626;border-width:2px"><option value="" disabled selected>—</option><option>House</option><option>Townhouse</option><option>Apartment</option><option>Unit</option></select></div>
+      <div class="field"><label>Condition</label><select id="condition" style="border-color:#dc2626;border-width:2px"><option value="" disabled selected>—</option><option>Excellent</option><option>Good</option><option>Fair</option><option>Needs Work</option></select></div>
+      <div class="field"><label>Year Built <span id="year-source" style="font-size:10px;color:var(--green);font-weight:600"></span></label><input type="number" id="year-built" placeholder="e.g. 1960" style="border-color:#dc2626;border-width:2px"></div>
     </div>
   </div>
   <div class="card">
@@ -956,7 +956,9 @@ async function generateAppraisal(){
     const comparablesSummary = listings.length >= 2
       ? `Active comparables: ${listings.slice(0,3).map(l=>`$${l.r}/wk`).join(', ')}.`
       : '';
-    const prompt = `Write a 2-4 sentence professional rental appraisal summary for a ${S.beds}-bedroom, ${S.baths}-bathroom ${document.getElementById('prop-type').value} in ${S.suburb}, ${S.city}. Property details: ${S.garage.toLowerCase()}, ${S.size}m² floor area, condition ${document.getElementById('condition').value}. Market: suburb median rent $${S.medRent}/week, ${S.rentGrowth} annual growth, ${S.pctRenters} renters. ${comparablesSummary} Be confident and professional — this is a formal appraisal document.`;
+    const propType = document.getElementById('prop-type').value || 'house';
+    const condition = document.getElementById('condition').value || 'good';
+    const prompt = `Write a 2-4 sentence professional rental appraisal summary for a ${S.beds}-bedroom, ${S.baths}-bathroom ${propType} in ${S.suburb}, ${S.city}. Property details: ${S.garage.toLowerCase()}, ${S.size}m² floor area, condition ${condition}. Market: suburb median rent $${S.medRent}/week, ${S.rentGrowth} annual growth, ${S.pctRenters} renters. ${comparablesSummary} Be confident and professional — this is a formal appraisal document.`;
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -970,7 +972,7 @@ async function generateAppraisal(){
     S.aiSummary = d.content?.[0]?.text || '';
     document.getElementById('ai-summary').textContent = S.aiSummary;
   } catch(e) {
-    S.aiSummary = `This well-presented ${S.beds}-bedroom, ${S.baths}-bathroom property in ${S.suburb} offers ${S.size}m² of quality living space with ${S.garage.toLowerCase()}. The suburb is experiencing solid rental demand with a current median of $${S.medRent}/week and ${S.rentGrowth} annual growth. Its ${document.getElementById('condition').value.toLowerCase()} condition and desirable location position it to attract quality tenants quickly.`;
+    S.aiSummary = `This well-presented ${S.beds}-bedroom, ${S.baths}-bathroom property in ${S.suburb} offers ${S.size}m² of quality living space with ${S.garage.toLowerCase()}. The suburb is experiencing solid rental demand with a current median of $${S.medRent}/week and ${S.rentGrowth} annual growth. Its ${(document.getElementById('condition').value || 'good').toLowerCase()} condition and desirable location position it to attract quality tenants quickly.`;
     document.getElementById('ai-summary').textContent = S.aiSummary;
   }
   updateFinancials();
@@ -1226,6 +1228,8 @@ function populatePropertyFields(beds, baths, garage, size) {
     { id: 'garaging',   sourceId: 'garage-source' },
     { id: 'floor-area', sourceId: 'size-source' },
     { id: 'year-built', sourceId: 'year-source' },
+    { id: 'prop-type',  sourceId: null },
+    { id: 'condition',  sourceId: null },
   ];
   fields.forEach(({ id, sourceId }) => {
     const el = document.getElementById(id);
@@ -1451,11 +1455,11 @@ function resetAppraisalForm() {
     const el = document.getElementById(id);
     if (el) { el.selectedIndex = 0; el.style.borderColor = ''; el.style.borderWidth = ''; }
   });
-  // Reset prop-type and condition to defaults
+  // Reset prop-type and condition to blank placeholder
   const propType = document.getElementById('prop-type');
-  if (propType) { for (let o of propType.options) { if (o.text === 'House') { o.selected = true; break; } } }
+  if (propType) { propType.selectedIndex = 0; propType.style.borderColor = '#dc2626'; propType.style.borderWidth = '2px'; }
   const condition = document.getElementById('condition');
-  if (condition) { for (let o of condition.options) { if (o.text === 'Good') { o.selected = true; break; } } }
+  if (condition) { condition.selectedIndex = 0; condition.style.borderColor = '#dc2626'; condition.style.borderWidth = '2px'; }
   // Clear source badges
   ['beds-source','baths-source','garage-source','size-source','year-source'].forEach(id => {
     const el = document.getElementById(id); if (el) el.innerHTML = '';
@@ -1464,7 +1468,7 @@ function resetAppraisalForm() {
   const floorEl = document.getElementById('floor-area');
   if (floorEl) { floorEl.value = ''; floorEl.style.borderColor = ''; floorEl.style.borderWidth = ''; floorEl.placeholder = 'e.g. 145'; }
   const yearEl = document.getElementById('year-built');
-  if (yearEl) { yearEl.value = ''; }
+  if (yearEl) { yearEl.value = ''; yearEl.style.borderColor = '#dc2626'; yearEl.style.borderWidth = '2px'; }
   const verifyNote = document.getElementById('pv-verify-note');
   if (verifyNote) verifyNote.style.display = 'none';
   // Reset image area

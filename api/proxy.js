@@ -125,7 +125,6 @@ module.exports = async function(req, res) {
         'area-definition': 'territorial-authority-2019',
         'area-codes':      taCode,
         'num-bedrooms':    beds,
-        'dwelling-type':   'House',
       }).toString();
 
       const result = await httpsGet(

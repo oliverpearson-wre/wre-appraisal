@@ -69,7 +69,6 @@ async function fetchStats(taCode, bedrooms) {
     'area-definition': 'territorial-authority-2019',
     'area-codes':      taCode,
     'num-bedrooms':    bedrooms,
-    'dwelling-type':   'House',
   }).toString();
 
   const url = `${BASE_PATH}/statistics?${qs}`;

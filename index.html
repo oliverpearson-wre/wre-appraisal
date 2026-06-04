@@ -732,11 +732,17 @@ function setApiStatus(index, dot, note) {
 async function fetchMBIERent() {
   setApiStatus(0, 'amber', 'Connecting to MBIE...');
   try {
-    const city = S.city || 'Hamilton';
+    const city     = S.city    || 'Hamilton';
+    const suburb   = S.suburb  || 'Hamilton';
+    const beds     = isNaN(S.beds) || !S.beds ? 3 : S.beds;
     const propType = document.getElementById('prop-type').value || 'House';
-    const resp = await fetch(`/api/proxy?service=mbie-rent&suburb=${encodeURIComponent(S.suburb)}&city=${encodeURIComponent(city)}&bedrooms=${S.beds}&proptype=${encodeURIComponent(propType)}`);
+    const url = `/api/proxy?service=mbie-rent&suburb=${encodeURIComponent(suburb)}&city=${encodeURIComponent(city)}&bedrooms=${beds}&proptype=${encodeURIComponent(propType)}`;
+    console.log('MBIE fetch:', url);
+    const resp = await fetch(url);
+    console.log('MBIE response status:', resp.status);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const d = await resp.json();
+    console.log('MBIE response data:', d);
 
     // Proxy returns clean { lq, med, uq, nCurr, growth, source }
     if (d.med && d.med > 0) {

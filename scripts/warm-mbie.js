@@ -1,25 +1,31 @@
 #!/usr/bin/env node
 /**
- * warm-mbie.js — Fetch fresh MBIE data and write to data/mbie-waikato.json
- * Run manually when you want to refresh: node scripts/warm-mbie.js
- * Or set up a monthly cron.
+ * warm-mbie.js — Fetch MBIE market rent data and write to data/mbie-waikato.json
+ *
+ * Strategy (matches the brief's estimate ladder):
+ *   Pass 1: SAU2019 — one call returns ALL ~1,611 suburb-level areas nationwide
+ *   Pass 2: IMR2017 — one call returns ALL ~301 clustered suburb groups
+ *   Pass 3: TA2019  — one call per TA (city-level fallback)
  *
  * Usage:
- *   node scripts/warm-mbie.js              # Waikato TAs only
- *   node scripts/warm-mbie.js --all        # All NZ TAs
- *   node scripts/warm-mbie.js --dry-run    # Show what would be fetched
+ *   node scripts/warm-mbie.js           # all three passes
+ *   node scripts/warm-mbie.js --dry-run # show what would be fetched
+ *   node scripts/warm-mbie.js --ta-only # skip SAU/IMR (fast test)
  */
 
-const https  = require('https');
-const fs     = require('fs');
-const path   = require('path');
-const os     = require('os');
+const https = require('https');
+const fs    = require('fs');
+const path  = require('path');
 
 const MBIE_KEY = process.env.MBIE_KEY || 'fe60f32fecf24e339f99e7d2b6ce0f82';
 const BASE     = 'api.business.govt.nz';
 const BASE_PATH = '/gateway/tenancy-services/market-rent/v2';
 const OUT_FILE  = path.join(__dirname, '../data/mbie-waikato.json');
 
+const DRY_RUN  = process.argv.includes('--dry-run');
+const TA_ONLY  = process.argv.includes('--ta-only');
+
+// Waikato TA codes
 const WAIKATO_TAS = {
   'Hamilton City':              '107',
   'Waikato District':           '110',
@@ -33,22 +39,30 @@ const WAIKATO_TAS = {
   'Waitomo District':           '119',
 };
 
-const BEDROOMS = ['1', '2', '3', '4', '5+'];
+// Keywords to identify Waikato suburbs in SAU/IMR results
+const WAIKATO_KEYWORDS = [
+  'hamilton', 'waikato', 'cambridge', 'te awamutu', 'huntly', 'raglan',
+  'morrinsville', 'matamata', 'te kuiti', 'otorohanga', 'taupo', 'tokoroa',
+  'paeroa', 'thames', 'coromandel', 'whitianga', 'tairua', 'whangamata',
+];
 
-const DRY_RUN = process.argv.includes('--dry-run');
+function isWaikato(label) {
+  if (!label) return false;
+  const l = label.toLowerCase();
+  return WAIKATO_KEYWORDS.some(k => l.includes(k));
+}
 
 function periodEnding() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 2);
+  const d = new Date(); d.setMonth(d.getMonth() - 2);
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function httpsGet(path, timeoutMs = 240000) {
+function httpsGet(p, timeoutMs = 240000) {
   return new Promise((resolve, reject) => {
     const req = https.request({
-      hostname: BASE, path, method: 'GET',
+      hostname: BASE, path: p, method: 'GET',
       headers: { 'Accept': 'application/json', 'Ocp-Apim-Subscription-Key': MBIE_KEY }
     }, (res) => {
       let data = '';
@@ -61,130 +75,164 @@ function httpsGet(path, timeoutMs = 240000) {
   });
 }
 
-async function fetchStats(taCode) {
-  const period = periodEnding();
+async function fetchSlice(areaDefinition, extraParams = {}) {
   const qs = new URLSearchParams({
-    'period-ending':   period,
+    'period-ending':   periodEnding(),
     'num-months':      '12',
-    'area-definition': 'territorial-authority-2019',
-    'area-codes':      taCode,
+    'area-definition': areaDefinition,
+    ...extraParams,
   }).toString();
 
   const url = `${BASE_PATH}/statistics?${qs}`;
+  if (DRY_RUN) { console.log('  [dry-run]', url); return []; }
 
-  if (DRY_RUN) {
-    console.log('  [dry-run]', url);
-    return null;
-  }
-
-  // Retry once on error
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
+      console.log(`  Fetching ${areaDefinition}... (may take up to 2 min)`);
       const r = await httpsGet(url);
       if (r.status === 200) {
-        const data = JSON.parse(r.body);
+        const data  = JSON.parse(r.body);
         const items = Array.isArray(data) ? data : (data.items || data.data || []);
+        console.log(`  Got ${items.length} rows`);
         return items;
       }
-      if (r.status >= 400 && r.status < 500) {
-        console.warn(`  HTTP ${r.status} — skipping`);
-        return null;
-      }
-      console.warn(`  HTTP ${r.status} attempt ${attempt} — retrying...`);
+      console.warn(`  HTTP ${r.status}: ${r.body.slice(0, 200)}`);
+      if (r.status >= 400 && r.status < 500) return [];
     } catch(e) {
       console.warn(`  Error attempt ${attempt}: ${e.message}`);
       if (attempt === 1) await sleep(5000);
     }
   }
-  return null;
+  return [];
+}
+
+// Blend an array of rows into { lq, med, uq, nCurr, growth }
+function blendRows(rows) {
+  const valid = rows.filter(r => r.med != null && r.nCurr > 0);
+  if (!valid.length) return null;
+  const totalW = valid.reduce((s, r) => s + r.nCurr, 0);
+  const wMed   = Math.round(valid.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
+  const wLq    = Math.round(valid.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
+  const wUq    = Math.round(valid.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
+  const sorted = [...valid].sort((a, b) => (a.period||'').localeCompare(b.period||''));
+  const growth = sorted[0]?.med > 0
+    ? parseFloat(((sorted[sorted.length-1].med - sorted[0].med) / sorted[0].med * 100).toFixed(1))
+    : 4.8;
+  return { lq: wLq, med: wMed, uq: wUq, nCurr: totalW, growth };
+}
+
+// Group rows by area label and nB (bedrooms)
+function groupByAreaAndBeds(items) {
+  const result = {};
+  for (const row of items) {
+    const area = row.area || row.areaLabel || row.label || 'Unknown';
+    const beds = String(row.nB || row.numBedrooms || row.bedrooms || 'all');
+    if (!result[area]) result[area] = {};
+    if (!result[area][beds]) result[area][beds] = [];
+    result[area][beds].push(row);
+  }
+  return result;
+}
+
+function atomicWrite(obj) {
+  const tmp = OUT_FILE + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2));
+  fs.renameSync(tmp, OUT_FILE);
 }
 
 async function main() {
-  console.log('MBIE Waikato warm script');
+  console.log('MBIE warm script — suburb + city level');
   console.log('Period ending:', periodEnding());
   console.log('Dry run:', DRY_RUN);
   console.log('');
 
-  // Load existing cache to preserve data we can't re-fetch
   let cache = {};
   try { cache = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8')); } catch(e) {}
 
-  const period = periodEnding();
   cache._meta = {
-    source: 'MBIE Market Rent API - api.business.govt.nz',
-    area_definition: 'territorial-authority-2019',
-    generated: new Date().toISOString().split('T')[0],
-    period_ending: period,
-    num_months: 12,
-    note: 'Updated by scripts/warm-mbie.js'
+    source:      'MBIE Market Rent API — api.business.govt.nz',
+    generated:   new Date().toISOString().split('T')[0],
+    period:      periodEnding(),
+    note:        'Run scripts/warm-mbie.js to refresh',
   };
 
-  let fetched = 0, suppressed = 0, errors = 0;
+  // ── PASS 1: SAU2019 (suburb level) ──
+  if (!TA_ONLY) {
+    console.log('=== Pass 1: SAU2019 (suburb level) ===');
+    const items = await fetchSlice('SAU2019');
+    const grouped = groupByAreaAndBeds(items);
+    let count = 0;
+
+    cache.SAU2019 = cache.SAU2019 || {};
+    for (const [area, bedGroups] of Object.entries(grouped)) {
+      if (!isWaikato(area)) continue; // keep only Waikato suburbs
+      cache.SAU2019[area] = {};
+      for (const [beds, rows] of Object.entries(bedGroups)) {
+        const blended = blendRows(rows);
+        if (blended) {
+          cache.SAU2019[area][beds] = blended;
+          count++;
+        }
+      }
+    }
+    console.log(`  Stored ${count} Waikato SAU entries`);
+    atomicWrite(cache);
+    await sleep(500);
+  }
+
+  // ── PASS 2: IMR2017 (clustered suburb groups) ──
+  if (!TA_ONLY) {
+    console.log('\n=== Pass 2: IMR2017 (suburb clusters) ===');
+    const items = await fetchSlice('IMR2017');
+    const grouped = groupByAreaAndBeds(items);
+    let count = 0;
+
+    cache.IMR2017 = cache.IMR2017 || {};
+    for (const [area, bedGroups] of Object.entries(grouped)) {
+      if (!isWaikato(area)) continue;
+      cache.IMR2017[area] = {};
+      for (const [beds, rows] of Object.entries(bedGroups)) {
+        const blended = blendRows(rows);
+        if (blended) {
+          cache.IMR2017[area][beds] = blended;
+          count++;
+        }
+      }
+    }
+    console.log(`  Stored ${count} Waikato IMR entries`);
+    atomicWrite(cache);
+    await sleep(500);
+  }
+
+  // ── PASS 3: TA2019 (city level fallback) ──
+  console.log('\n=== Pass 3: TA2019 (city level) ===');
+  cache.TA2019 = cache.TA2019 || {};
 
   for (const [taName, taCode] of Object.entries(WAIKATO_TAS)) {
     console.log(`\n${taName} (${taCode})`);
-    if (!cache[taName]) cache[taName] = { [taCode]: {} };
-    if (!cache[taName][taCode]) cache[taName][taCode] = {};
+    cache.TA2019[taName] = cache.TA2019[taName] || {};
 
-    process.stdout.write(`  Fetching all bedrooms... `);
-    const items = await fetchStats(taCode);
+    const items   = await fetchSlice('territorial-authority-2019', { 'area-codes': taCode });
+    const grouped = groupByAreaAndBeds(items);
+    let count = 0;
 
-    if (items === null) {
-      errors++;
-      process.stdout.write('error\n');
-      continue;
+    for (const [area, bedGroups] of Object.entries(grouped)) {
+      for (const [beds, rows] of Object.entries(bedGroups)) {
+        const blended = blendRows(rows);
+        if (blended) {
+          if (!cache.TA2019[taName][beds]) cache.TA2019[taName][beds] = {};
+          cache.TA2019[taName][beds] = blended;
+          console.log(`  ${beds}bd: $${blended.lq}/$${blended.med}/$${blended.uq} (n=${blended.nCurr})`);
+          count++;
+        }
+      }
     }
-    if (items.length === 0) {
-      suppressed++;
-      process.stdout.write('suppressed\n');
-      continue;
-    }
-
-    process.stdout.write(`${items.length} rows received\n`);
-
-    // Group rows by nB (num bedrooms field)
-    const byBeds = {};
-    for (const row of items) {
-      const b = String(row.nB || row.numBedrooms || row.bedrooms || 'NA');
-      if (!byBeds[b]) byBeds[b] = [];
-      byBeds[b].push(row);
-    }
-
-    console.log('  Bedroom groups found:', Object.keys(byBeds).join(', '));
-
-    for (const [beds, rows] of Object.entries(byBeds)) {
-      const validRows = rows.filter(r => r.med != null && r.nCurr > 0);
-      if (!validRows.length) { console.log(`  ${beds}bd: all suppressed`); continue; }
-
-      const totalW = validRows.reduce((s, r) => s + r.nCurr, 0);
-      const wMed   = Math.round(validRows.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
-      const wLq    = Math.round(validRows.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
-      const wUq    = Math.round(validRows.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
-
-      const sorted  = [...validRows].sort((a, b) => (a.period||'').localeCompare(b.period||''));
-      const newest  = sorted[sorted.length - 1];
-      const oldest  = sorted[0];
-      const growth  = oldest.med > 0
-        ? parseFloat(((newest.med - oldest.med) / oldest.med * 100).toFixed(1))
-        : 4.8;
-
-      cache[taName][taCode][beds] = { lq: wLq, med: wMed, uq: wUq, nCurr: totalW, growth };
-      fetched++;
-      console.log(`  ${beds}bd: $${wLq}/$${wMed}/$${wUq} (n=${totalW})`);
-    }
-
-    // Atomic write after each TA
-    if (!DRY_RUN) {
-      const tmp = OUT_FILE + '.tmp';
-      fs.writeFileSync(tmp, JSON.stringify(cache, null, 2));
-      fs.renameSync(tmp, OUT_FILE);
-    }
-
+    if (!count) console.log('  All suppressed');
+    atomicWrite(cache);
     await sleep(250);
   }
 
-  console.log(`\nDone. fetched=${fetched} suppressed=${suppressed} errors=${errors}`);
-  if (!DRY_RUN) console.log(`Written to ${OUT_FILE}`);
+  console.log('\nDone. Written to', OUT_FILE);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

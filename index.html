@@ -733,7 +733,7 @@ async function fetchMBIERent() {
   setApiStatus(0, 'amber', 'Connecting to MBIE...');
   try {
     const city = S.city || 'Hamilton';
-    const resp = await fetch(`/api/proxy?service=mbie-rent&city=${encodeURIComponent(city)}&bedrooms=${S.beds}`);
+    const resp = await fetch(`/api/proxy?service=mbie-rent&suburb=${encodeURIComponent(S.suburb)}&city=${encodeURIComponent(city)}&bedrooms=${S.beds}`);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const d = await resp.json();
 
@@ -741,10 +741,14 @@ async function fetchMBIERent() {
     if (d.med && d.med > 0) {
       const growth = d.growth >= 0 ? '+' + d.growth + '%' : d.growth + '%';
       applyMBIEData(d.med, d.uq, d.lq, growth);
-      const src = d.source === 'cache'
-        ? `Cached — MBIE ${city} ${S.beds}bd · updated ${d.generated}`
-        : `Live — MBIE ${city} ${S.beds}bd`;
-      setApiStatus(0, 'green', src);
+      const tierLabel = {
+        'cache:SAU2019':      `Suburb level — ${d.area}`,
+        'cache:IMR2017':      `Suburb cluster — ${d.area}`,
+        'cache:TA2019':       `City level — ${d.area}`,
+        'cache:TA2019-broad': `City estimate — ${d.area}`,
+        'live':               `Live — ${d.area}`,
+      }[d.source] || d.source;
+      setApiStatus(0, 'green', `MBIE · ${tierLabel} · ${S.beds}bd`);
       return;
     }
     throw new Error('No usable data in response');

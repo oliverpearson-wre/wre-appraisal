@@ -47,13 +47,10 @@ function bedsKey(n) {
   return 'all';
 }
 
-// Load static cache
-let _cache = null;
+// Load static cache fresh each time (file is small, disk read is fast)
 function getCache() {
-  if (_cache) return _cache;
-  try { _cache = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/mbie-waikato.json'), 'utf8')); }
-  catch(e) { _cache = {}; }
-  return _cache;
+  try { return JSON.parse(fs.readFileSync(path.join(__dirname, '../data/mbie-waikato.json'), 'utf8')); }
+  catch(e) { return {}; }
 }
 
 // Estimate ladder: SAU2019 → IMR2017 → TA2019 → null

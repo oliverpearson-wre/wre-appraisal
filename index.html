@@ -746,7 +746,7 @@ async function fetchMBIERent() {
 
     // Proxy returns clean { lq, med, uq, nCurr, growth, source }
     if (d.med && d.med > 0) {
-      const growth = d.growth >= 0 ? '+' + d.growth + '%' : d.growth + '%';
+      const growth = d.growth || '—';
       applyMBIEData(d.med, d.uq, d.lq, growth);
       const tierLabel = {
         'cache:SAU2019':      `Suburb level — ${d.area}`,

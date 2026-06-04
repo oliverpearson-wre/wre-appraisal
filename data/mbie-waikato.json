@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "source": "MBIE Market Rent API — api.business.govt.nz",
+    "source": "MBIE Market Rent API \u2014 api.business.govt.nz",
     "generated": "2026-06-04",
     "period": "2026-04",
     "note": "Run scripts/warm-mbie.js to refresh"
@@ -12,35 +12,35 @@
         "med": 395,
         "uq": 440,
         "nCurr": 420,
-        "growth": 4.8
+        "growth": null
       },
       "2": {
         "lq": 440,
         "med": 490,
         "uq": 545,
         "nCurr": 890,
-        "growth": 5.1
+        "growth": null
       },
       "3": {
         "lq": 570,
         "med": 640,
         "uq": 710,
         "nCurr": 1240,
-        "growth": 5.4
+        "growth": null
       },
       "4": {
         "lq": 680,
         "med": 760,
         "uq": 845,
         "nCurr": 580,
-        "growth": 4.9
+        "growth": null
       },
       "5+": {
         "lq": 790,
         "med": 880,
         "uq": 980,
         "nCurr": 180,
-        "growth": 4.2
+        "growth": null
       }
     }
   },
@@ -51,35 +51,35 @@
         "med": 340,
         "uq": 385,
         "nCurr": 85,
-        "growth": 3.9
+        "growth": null
       },
       "2": {
         "lq": 380,
         "med": 420,
         "uq": 470,
         "nCurr": 210,
-        "growth": 4.1
+        "growth": null
       },
       "3": {
         "lq": 470,
         "med": 530,
         "uq": 595,
         "nCurr": 340,
-        "growth": 4.4
+        "growth": null
       },
       "4": {
         "lq": 560,
         "med": 630,
         "uq": 705,
         "nCurr": 155,
-        "growth": 3.8
+        "growth": null
       },
       "5+": {
         "lq": 650,
         "med": 730,
         "uq": 820,
         "nCurr": 45,
-        "growth": 3.5
+        "growth": null
       }
     }
   },
@@ -90,35 +90,35 @@
         "med": 355,
         "uq": 400,
         "nCurr": 65,
-        "growth": 4.2
+        "growth": null
       },
       "2": {
         "lq": 395,
         "med": 440,
         "uq": 490,
         "nCurr": 175,
-        "growth": 4.5
+        "growth": null
       },
       "3": {
         "lq": 490,
         "med": 555,
         "uq": 620,
         "nCurr": 285,
-        "growth": 4.8
+        "growth": null
       },
       "4": {
         "lq": 590,
         "med": 665,
         "uq": 745,
         "nCurr": 120,
-        "growth": 4.3
+        "growth": null
       },
       "5+": {
         "lq": 680,
         "med": 765,
         "uq": 855,
         "nCurr": 35,
-        "growth": 3.9
+        "growth": null
       }
     }
   },
@@ -129,21 +129,21 @@
         "med": 385,
         "uq": 430,
         "nCurr": 95,
-        "growth": 3.6
+        "growth": null
       },
       "3": {
         "lq": 420,
         "med": 475,
         "uq": 535,
         "nCurr": 165,
-        "growth": 3.8
+        "growth": null
       },
       "4": {
         "lq": 510,
         "med": 575,
         "uq": 645,
         "nCurr": 70,
-        "growth": 3.4
+        "growth": null
       }
     }
   },
@@ -154,21 +154,21 @@
         "med": 430,
         "uq": 485,
         "nCurr": 110,
-        "growth": 4.1
+        "growth": null
       },
       "3": {
         "lq": 460,
         "med": 520,
         "uq": 585,
         "nCurr": 145,
-        "growth": 4.3
+        "growth": null
       },
       "4": {
         "lq": 550,
         "med": 620,
         "uq": 695,
         "nCurr": 55,
-        "growth": 3.9
+        "growth": null
       }
     }
   },
@@ -194,14 +194,14 @@
         "med": 695,
         "uq": 730,
         "nCurr": 108,
-        "growth": 0.7
+        "growth": null
       },
       "House:all": {
         "lq": 670,
         "med": 695,
         "uq": 730,
         "nCurr": 108,
-        "growth": 0.7
+        "growth": null
       }
     },
     "Cambridge Central": {
@@ -210,14 +210,14 @@
         "med": 595,
         "uq": 660,
         "nCurr": 108,
-        "growth": 2.6
+        "growth": null
       },
       "House:all": {
         "lq": 565,
         "med": 595,
         "uq": 660,
         "nCurr": 108,
-        "growth": 2.6
+        "growth": null
       }
     },
     "Cambridge East": {
@@ -226,14 +226,14 @@
         "med": 625,
         "uq": 665,
         "nCurr": 216,
-        "growth": 93.3
+        "growth": null
       },
       "House:all": {
         "lq": 615,
         "med": 635,
         "uq": 675,
         "nCurr": 210,
-        "growth": -10.5
+        "growth": null
       }
     },
     "Cambridge North": {
@@ -242,14 +242,14 @@
         "med": 775,
         "uq": 835,
         "nCurr": 108,
-        "growth": -3.8
+        "growth": null
       },
       "House:all": {
         "lq": 735,
         "med": 775,
         "uq": 835,
         "nCurr": 108,
-        "growth": -3.8
+        "growth": null
       }
     },
     "Cambridge Park-River Garden": {
@@ -258,14 +258,14 @@
         "med": 760,
         "uq": 795,
         "nCurr": 93,
-        "growth": -3.9
+        "growth": null
       },
       "House:all": {
         "lq": 695,
         "med": 760,
         "uq": 795,
         "nCurr": 93,
-        "growth": -3.9
+        "growth": null
       }
     },
     "Cambridge West": {
@@ -274,14 +274,14 @@
         "med": 650,
         "uq": 705,
         "nCurr": 183,
-        "growth": 5.8
+        "growth": null
       },
       "House:all": {
         "lq": 590,
         "med": 650,
         "uq": 705,
         "nCurr": 183,
-        "growth": 5.8
+        "growth": null
       }
     },
     "Fairfield (Hamilton City)": {
@@ -290,14 +290,14 @@
         "med": 590,
         "uq": 615,
         "nCurr": 513,
-        "growth": 0
+        "growth": null
       },
       "House:all": {
         "lq": 555,
         "med": 590,
         "uq": 615,
         "nCurr": 513,
-        "growth": 0
+        "growth": null
       }
     },
     "Forest Lake (Hamilton City)": {
@@ -306,14 +306,14 @@
         "med": 610,
         "uq": 635,
         "nCurr": 255,
-        "growth": 15.3
+        "growth": null
       },
       "House:all": {
         "lq": 565,
         "med": 610,
         "uq": 635,
         "nCurr": 255,
-        "growth": 15.3
+        "growth": null
       }
     },
     "Hamilton Central": {
@@ -322,21 +322,21 @@
         "med": 335,
         "uq": 405,
         "nCurr": 162,
-        "growth": 282.1
+        "growth": null
       },
       "House:all": {
         "lq": 440,
         "med": 495,
         "uq": 545,
         "nCurr": 30,
-        "growth": 11.5
+        "growth": null
       },
       "Apartment:all": {
         "lq": 310,
         "med": 365,
         "uq": 410,
         "nCurr": 93,
-        "growth": 278.6
+        "growth": null
       }
     },
     "Hamilton East": {
@@ -345,21 +345,21 @@
         "med": 580,
         "uq": 615,
         "nCurr": 447,
-        "growth": 38.3
+        "growth": null
       },
       "House:all": {
         "lq": 555,
         "med": 590,
         "uq": 630,
         "nCurr": 408,
-        "growth": 16.1
+        "growth": null
       },
       "Flat:all": {
         "lq": 390,
         "med": 470,
         "uq": 490,
         "nCurr": 39,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton East Cook": {
@@ -368,21 +368,21 @@
         "med": 605,
         "uq": 630,
         "nCurr": 282,
-        "growth": 5.8
+        "growth": null
       },
       "House:all": {
         "lq": 530,
         "med": 615,
         "uq": 640,
         "nCurr": 261,
-        "growth": 0
+        "growth": null
       },
       "Flat:all": {
         "lq": 435,
         "med": 520,
         "uq": 520,
         "nCurr": 21,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton East Village": {
@@ -391,28 +391,28 @@
         "med": 480,
         "uq": 520,
         "nCurr": 918,
-        "growth": 52.6
+        "growth": null
       },
       "House:all": {
         "lq": 480,
         "med": 560,
         "uq": 615,
         "nCurr": 450,
-        "growth": 35.2
+        "growth": null
       },
       "Flat:all": {
         "lq": 360,
         "med": 390,
         "uq": 415,
         "nCurr": 360,
-        "growth": 19.4
+        "growth": null
       },
       "Apartment:all": {
         "lq": 420,
         "med": 450,
         "uq": 465,
         "nCurr": 108,
-        "growth": 59
+        "growth": null
       }
     },
     "Hamilton Estate": {
@@ -421,14 +421,14 @@
         "med": 570,
         "uq": 600,
         "nCurr": 162,
-        "growth": 16.3
+        "growth": null
       },
       "House:all": {
         "lq": 540,
         "med": 570,
         "uq": 600,
         "nCurr": 162,
-        "growth": 16.3
+        "growth": null
       }
     },
     "Hamilton Lake": {
@@ -437,28 +437,28 @@
         "med": 530,
         "uq": 590,
         "nCurr": 840,
-        "growth": -35.4
+        "growth": null
       },
       "House:all": {
         "lq": 500,
         "med": 590,
         "uq": 660,
         "nCurr": 558,
-        "growth": 1.9
+        "growth": null
       },
       "Flat:all": {
         "lq": 390,
         "med": 400,
         "uq": 430,
         "nCurr": 162,
-        "growth": 20
+        "growth": null
       },
       "Apartment:all": {
         "lq": 435,
         "med": 475,
         "uq": 520,
         "nCurr": 87,
-        "growth": 22
+        "growth": null
       }
     },
     "Hamilton Park": {
@@ -467,14 +467,14 @@
         "med": 650,
         "uq": 825,
         "nCurr": 27,
-        "growth": 0
+        "growth": null
       },
       "House:all": {
         "lq": 610,
         "med": 650,
         "uq": 825,
         "nCurr": 27,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton West": {
@@ -483,28 +483,28 @@
         "med": 475,
         "uq": 540,
         "nCurr": 396,
-        "growth": 64.3
+        "growth": null
       },
       "House:all": {
         "lq": 415,
         "med": 515,
         "uq": 600,
         "nCurr": 222,
-        "growth": 27.8
+        "growth": null
       },
       "Flat:all": {
         "lq": 380,
         "med": 415,
         "uq": 450,
         "nCurr": 111,
-        "growth": 25
+        "growth": null
       },
       "Apartment:all": {
         "lq": 435,
         "med": 460,
         "uq": 475,
         "nCurr": 63,
-        "growth": 78.6
+        "growth": null
       }
     },
     "Hillcrest East (Hamilton City)": {
@@ -513,28 +513,28 @@
         "med": 535,
         "uq": 570,
         "nCurr": 570,
-        "growth": -64.3
+        "growth": null
       },
       "House:all": {
         "lq": 550,
         "med": 595,
         "uq": 635,
         "nCurr": 453,
-        "growth": -1.4
+        "growth": null
       },
       "Flat:all": {
         "lq": 445,
         "med": 475,
         "uq": 500,
         "nCurr": 24,
-        "growth": 0
+        "growth": null
       },
       "Apartment:all": {
         "lq": 665,
         "med": 700,
         "uq": 700,
         "nCurr": 3,
-        "growth": 0
+        "growth": null
       }
     },
     "Hillcrest West (Hamilton City)": {
@@ -543,21 +543,21 @@
         "med": 535,
         "uq": 580,
         "nCurr": 393,
-        "growth": 17.4
+        "growth": null
       },
       "House:all": {
         "lq": 525,
         "med": 595,
         "uq": 650,
         "nCurr": 324,
-        "growth": 5.5
+        "growth": null
       },
       "Flat:all": {
         "lq": 230,
         "med": 230,
         "uq": 250,
         "nCurr": 12,
-        "growth": 0
+        "growth": null
       }
     },
     "Hilltop (Taupo District)": {
@@ -566,14 +566,14 @@
         "med": 660,
         "uq": 685,
         "nCurr": 114,
-        "growth": 5.4
+        "growth": null
       },
       "House:all": {
         "lq": 630,
         "med": 660,
         "uq": 685,
         "nCurr": 114,
-        "growth": 5.4
+        "growth": null
       }
     },
     "Huntly East": {
@@ -582,21 +582,21 @@
         "med": 535,
         "uq": 560,
         "nCurr": 414,
-        "growth": 143.8
+        "growth": null
       },
       "House:all": {
         "lq": 515,
         "med": 560,
         "uq": 590,
         "nCurr": 360,
-        "growth": 17
+        "growth": null
       },
       "Flat:all": {
         "lq": 430,
         "med": 450,
         "uq": 450,
         "nCurr": 33,
-        "growth": 0
+        "growth": null
       }
     },
     "Huntly West": {
@@ -605,14 +605,14 @@
         "med": 535,
         "uq": 565,
         "nCurr": 267,
-        "growth": 7.1
+        "growth": null
       },
       "House:all": {
         "lq": 525,
         "med": 535,
         "uq": 565,
         "nCurr": 267,
-        "growth": 7.1
+        "growth": null
       }
     },
     "Lake Taupo Bays": {
@@ -621,14 +621,14 @@
         "med": 470,
         "uq": 520,
         "nCurr": 42,
-        "growth": -5.1
+        "growth": null
       },
       "House:all": {
         "lq": 450,
         "med": 470,
         "uq": 520,
         "nCurr": 42,
-        "growth": -5.1
+        "growth": null
       }
     },
     "Matamata North": {
@@ -637,21 +637,21 @@
         "med": 575,
         "uq": 605,
         "nCurr": 225,
-        "growth": 71.6
+        "growth": null
       },
       "House:all": {
         "lq": 575,
         "med": 595,
         "uq": 625,
         "nCurr": 198,
-        "growth": 21.9
+        "growth": null
       },
       "Flat:all": {
         "lq": 380,
         "med": 405,
         "uq": 455,
         "nCurr": 27,
-        "growth": 0
+        "growth": null
       }
     },
     "Matamata South": {
@@ -660,21 +660,21 @@
         "med": 610,
         "uq": 655,
         "nCurr": 351,
-        "growth": 42.2
+        "growth": null
       },
       "House:all": {
         "lq": 560,
         "med": 620,
         "uq": 670,
         "nCurr": 321,
-        "growth": 6.7
+        "growth": null
       },
       "Flat:all": {
         "lq": 420,
         "med": 450,
         "uq": 500,
         "nCurr": 30,
-        "growth": 0
+        "growth": null
       }
     },
     "Morrinsville East": {
@@ -683,21 +683,21 @@
         "med": 580,
         "uq": 625,
         "nCurr": 288,
-        "growth": 45.6
+        "growth": null
       },
       "House:all": {
         "lq": 560,
         "med": 600,
         "uq": 655,
         "nCurr": 246,
-        "growth": 9.2
+        "growth": null
       },
       "Flat:all": {
         "lq": 400,
         "med": 450,
         "uq": 450,
         "nCurr": 42,
-        "growth": 0
+        "growth": null
       }
     },
     "Morrinsville West": {
@@ -706,14 +706,14 @@
         "med": 575,
         "uq": 600,
         "nCurr": 192,
-        "growth": 8.2
+        "growth": null
       },
       "House:all": {
         "lq": 550,
         "med": 575,
         "uq": 600,
         "nCurr": 192,
-        "growth": 8.2
+        "growth": null
       }
     },
     "Otorohanga": {
@@ -722,14 +722,14 @@
         "med": 500,
         "uq": 525,
         "nCurr": 225,
-        "growth": -6.7
+        "growth": null
       },
       "House:all": {
         "lq": 445,
         "med": 500,
         "uq": 525,
         "nCurr": 225,
-        "growth": -6.7
+        "growth": null
       }
     },
     "Paeroa": {
@@ -738,21 +738,21 @@
         "med": 540,
         "uq": 575,
         "nCurr": 234,
-        "growth": 25
+        "growth": null
       },
       "House:all": {
         "lq": 490,
         "med": 545,
         "uq": 585,
         "nCurr": 216,
-        "growth": 20
+        "growth": null
       },
       "Flat:all": {
         "lq": 480,
         "med": 480,
         "uq": 480,
         "nCurr": 18,
-        "growth": 0
+        "growth": null
       }
     },
     "Paeroa Rural": {
@@ -761,14 +761,14 @@
         "med": 470,
         "uq": 535,
         "nCurr": 24,
-        "growth": 13.6
+        "growth": null
       },
       "House:all": {
         "lq": 440,
         "med": 470,
         "uq": 535,
         "nCurr": 24,
-        "growth": 13.6
+        "growth": null
       }
     },
     "Queenwood (Hamilton City)": {
@@ -777,14 +777,14 @@
         "med": 660,
         "uq": 735,
         "nCurr": 231,
-        "growth": 4.8
+        "growth": null
       },
       "House:all": {
         "lq": 630,
         "med": 660,
         "uq": 735,
         "nCurr": 231,
-        "growth": 4.8
+        "growth": null
       }
     },
     "Raglan": {
@@ -793,21 +793,21 @@
         "med": 570,
         "uq": 615,
         "nCurr": 282,
-        "growth": 61.1
+        "growth": null
       },
       "House:all": {
         "lq": 535,
         "med": 585,
         "uq": 630,
         "nCurr": 267,
-        "growth": -3.3
+        "growth": null
       },
       "Flat:all": {
         "lq": 350,
         "med": 360,
         "uq": 395,
         "nCurr": 15,
-        "growth": 0
+        "growth": null
       }
     },
     "Silverdale (Hamilton City)": {
@@ -816,28 +816,28 @@
         "med": 525,
         "uq": 560,
         "nCurr": 372,
-        "growth": -70.1
+        "growth": null
       },
       "House:all": {
         "lq": 480,
         "med": 580,
         "uq": 620,
         "nCurr": 288,
-        "growth": -3.6
+        "growth": null
       },
       "Flat:all": {
         "lq": 250,
         "med": 355,
         "uq": 355,
         "nCurr": 27,
-        "growth": 0
+        "growth": null
       },
       "Apartment:all": {
         "lq": 870,
         "med": 870,
         "uq": 870,
         "nCurr": 6,
-        "growth": 0
+        "growth": null
       }
     },
     "Strathmore (South Waikato District)": {
@@ -846,14 +846,14 @@
         "med": 510,
         "uq": 540,
         "nCurr": 216,
-        "growth": 5.7
+        "growth": null
       },
       "House:all": {
         "lq": 495,
         "med": 510,
         "uq": 540,
         "nCurr": 216,
-        "growth": 5.7
+        "growth": null
       }
     },
     "Tairua": {
@@ -862,14 +862,14 @@
         "med": 525,
         "uq": 570,
         "nCurr": 42,
-        "growth": 20.9
+        "growth": null
       },
       "House:all": {
         "lq": 495,
         "med": 525,
         "uq": 570,
         "nCurr": 42,
-        "growth": 20.9
+        "growth": null
       }
     },
     "Taupo Central East": {
@@ -878,21 +878,21 @@
         "med": 580,
         "uq": 615,
         "nCurr": 267,
-        "growth": 16.5
+        "growth": null
       },
       "House:all": {
         "lq": 560,
         "med": 600,
         "uq": 635,
         "nCurr": 216,
-        "growth": 5.5
+        "growth": null
       },
       "Flat:all": {
         "lq": 430,
         "med": 500,
         "uq": 535,
         "nCurr": 51,
-        "growth": 0
+        "growth": null
       }
     },
     "Taupo Central West": {
@@ -901,21 +901,21 @@
         "med": 500,
         "uq": 540,
         "nCurr": 24,
-        "growth": 28.9
+        "growth": null
       },
       "House:all": {
         "lq": 560,
         "med": 580,
         "uq": 655,
         "nCurr": 9,
-        "growth": 0
+        "growth": null
       },
       "Flat:all": {
         "lq": 450,
         "med": 450,
         "uq": 470,
         "nCurr": 15,
-        "growth": 0
+        "growth": null
       }
     },
     "Te Awamutu Central": {
@@ -924,14 +924,14 @@
         "med": 520,
         "uq": 525,
         "nCurr": 24,
-        "growth": 0
+        "growth": null
       },
       "House:all": {
         "lq": 520,
         "med": 520,
         "uq": 525,
         "nCurr": 24,
-        "growth": 0
+        "growth": null
       }
     },
     "Te Awamutu North": {
@@ -940,14 +940,14 @@
         "med": 620,
         "uq": 670,
         "nCurr": 36,
-        "growth": 0
+        "growth": null
       },
       "House:all": {
         "lq": 575,
         "med": 620,
         "uq": 670,
         "nCurr": 36,
-        "growth": 0
+        "growth": null
       }
     },
     "Te Awamutu Stadium": {
@@ -956,14 +956,14 @@
         "med": 605,
         "uq": 615,
         "nCurr": 66,
-        "growth": -3.2
+        "growth": null
       },
       "House:all": {
         "lq": 595,
         "med": 605,
         "uq": 615,
         "nCurr": 66,
-        "growth": -3.2
+        "growth": null
       }
     },
     "Te Awamutu West": {
@@ -972,14 +972,14 @@
         "med": 595,
         "uq": 620,
         "nCurr": 84,
-        "growth": 10.3
+        "growth": null
       },
       "House:all": {
         "lq": 575,
         "med": 595,
         "uq": 620,
         "nCurr": 84,
-        "growth": 10.3
+        "growth": null
       }
     },
     "Te Kuiti East": {
@@ -988,14 +988,14 @@
         "med": 440,
         "uq": 465,
         "nCurr": 96,
-        "growth": -15.8
+        "growth": null
       },
       "House:all": {
         "lq": 410,
         "med": 440,
         "uq": 465,
         "nCurr": 96,
-        "growth": -15.8
+        "growth": null
       }
     },
     "Te Kuiti West": {
@@ -1004,14 +1004,14 @@
         "med": 445,
         "uq": 485,
         "nCurr": 180,
-        "growth": 16.7
+        "growth": null
       },
       "House:all": {
         "lq": 410,
         "med": 445,
         "uq": 485,
         "nCurr": 180,
-        "growth": 16.7
+        "growth": null
       }
     },
     "Thames Central": {
@@ -1020,14 +1020,14 @@
         "med": 475,
         "uq": 615,
         "nCurr": 12,
-        "growth": 41.9
+        "growth": null
       },
       "House:all": {
         "lq": 400,
         "med": 475,
         "uq": 615,
         "nCurr": 12,
-        "growth": 41.9
+        "growth": null
       }
     },
     "Thames North": {
@@ -1036,14 +1036,14 @@
         "med": 570,
         "uq": 625,
         "nCurr": 87,
-        "growth": 5.5
+        "growth": null
       },
       "House:all": {
         "lq": 510,
         "med": 570,
         "uq": 625,
         "nCurr": 87,
-        "growth": 5.5
+        "growth": null
       }
     },
     "Thames South": {
@@ -1052,21 +1052,21 @@
         "med": 590,
         "uq": 615,
         "nCurr": 132,
-        "growth": 62.5
+        "growth": null
       },
       "House:all": {
         "lq": 565,
         "med": 600,
         "uq": 630,
         "nCurr": 123,
-        "growth": 16.1
+        "growth": null
       },
       "Flat:all": {
         "lq": 350,
         "med": 400,
         "uq": 410,
         "nCurr": 9,
-        "growth": 0
+        "growth": null
       }
     },
     "Tokoroa Central": {
@@ -1075,14 +1075,14 @@
         "med": 490,
         "uq": 545,
         "nCurr": 78,
-        "growth": -21
+        "growth": null
       },
       "House:all": {
         "lq": 460,
         "med": 490,
         "uq": 545,
         "nCurr": 78,
-        "growth": -21
+        "growth": null
       }
     },
     "Western Heights (Hamilton City)": {
@@ -1091,14 +1091,14 @@
         "med": 695,
         "uq": 740,
         "nCurr": 123,
-        "growth": -6.9
+        "growth": null
       },
       "House:all": {
         "lq": 660,
         "med": 695,
         "uq": 740,
         "nCurr": 123,
-        "growth": -6.9
+        "growth": null
       }
     },
     "Whangamata": {
@@ -1107,14 +1107,14 @@
         "med": 600,
         "uq": 635,
         "nCurr": 135,
-        "growth": -6.8
+        "growth": null
       },
       "House:all": {
         "lq": 570,
         "med": 600,
         "uq": 635,
         "nCurr": 135,
-        "growth": -6.8
+        "growth": null
       }
     },
     "Whataupoko East": {
@@ -1123,21 +1123,21 @@
         "med": 705,
         "uq": 755,
         "nCurr": 36,
-        "growth": 88.2
+        "growth": null
       },
       "House:all": {
         "lq": 735,
         "med": 800,
         "uq": 835,
         "nCurr": 27,
-        "growth": 0
+        "growth": null
       },
       "Flat:all": {
         "lq": 425,
         "med": 425,
         "uq": 520,
         "nCurr": 9,
-        "growth": 0
+        "growth": null
       }
     },
     "Whataupoko West": {
@@ -1146,21 +1146,21 @@
         "med": 610,
         "uq": 655,
         "nCurr": 198,
-        "growth": 94.8
+        "growth": null
       },
       "House:all": {
         "lq": 620,
         "med": 660,
         "uq": 715,
         "nCurr": 150,
-        "growth": 7.1
+        "growth": null
       },
       "Flat:all": {
         "lq": 390,
         "med": 445,
         "uq": 470,
         "nCurr": 48,
-        "growth": 27.3
+        "growth": null
       }
     },
     "Whitianga North": {
@@ -1169,14 +1169,14 @@
         "med": 460,
         "uq": 525,
         "nCurr": 30,
-        "growth": -6.3
+        "growth": null
       },
       "House:all": {
         "lq": 395,
         "med": 460,
         "uq": 525,
         "nCurr": 30,
-        "growth": -6.3
+        "growth": null
       }
     },
     "Whitianga South": {
@@ -1185,14 +1185,14 @@
         "med": 555,
         "uq": 610,
         "nCurr": 246,
-        "growth": -2.7
+        "growth": null
       },
       "House:all": {
         "lq": 525,
         "med": 555,
         "uq": 610,
         "nCurr": 246,
-        "growth": -2.7
+        "growth": null
       }
     }
   },
@@ -1203,21 +1203,21 @@
         "med": 580,
         "uq": 620,
         "nCurr": 573,
-        "growth": -53.3
+        "growth": null
       },
       "House:all": {
         "lq": 650,
         "med": 715,
         "uq": 770,
         "nCurr": 387,
-        "growth": 0
+        "growth": null
       },
       "Flat:all": {
         "lq": 375,
         "med": 455,
         "uq": 470,
         "nCurr": 75,
-        "growth": 12.1
+        "growth": null
       }
     },
     "Hamilton - all other suburbs": {
@@ -1226,14 +1226,14 @@
         "med": 660,
         "uq": 720,
         "nCurr": 282,
-        "growth": 30.2
+        "growth": null
       },
       "House:all": {
         "lq": 590,
         "med": 660,
         "uq": 720,
         "nCurr": 282,
-        "growth": 30.2
+        "growth": null
       }
     },
     "Hamilton - Bader/Deanwell/Enderley": {
@@ -1242,28 +1242,28 @@
         "med": 560,
         "uq": 600,
         "nCurr": 852,
-        "growth": -54.5
+        "growth": null
       },
       "House:all": {
         "lq": 535,
         "med": 575,
         "uq": 615,
         "nCurr": 756,
-        "growth": 2.4
+        "growth": null
       },
       "Flat:all": {
         "lq": 445,
         "med": 460,
         "uq": 515,
         "nCurr": 51,
-        "growth": 22
+        "growth": null
       },
       "Apartment:all": {
         "lq": 550,
         "med": 560,
         "uq": 565,
         "nCurr": 24,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton - Beerescourt/Chartwell/Fairfield/Saint Andrews": {
@@ -1272,28 +1272,28 @@
         "med": 605,
         "uq": 650,
         "nCurr": 2664,
-        "growth": -43.1
+        "growth": null
       },
       "House:all": {
         "lq": 570,
         "med": 615,
         "uq": 660,
         "nCurr": 2517,
-        "growth": 5.1
+        "growth": null
       },
       "Flat:all": {
         "lq": 435,
         "med": 455,
         "uq": 480,
         "nCurr": 99,
-        "growth": 31.6
+        "growth": null
       },
       "Apartment:all": {
         "lq": 500,
         "med": 580,
         "uq": 610,
         "nCurr": 18,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton - Chedworth/Pukete": {
@@ -1302,21 +1302,21 @@
         "med": 620,
         "uq": 665,
         "nCurr": 471,
-        "growth": 25
+        "growth": null
       },
       "House:all": {
         "lq": 595,
         "med": 635,
         "uq": 680,
         "nCurr": 456,
-        "growth": 6.7
+        "growth": null
       },
       "Apartment:all": {
         "lq": 185,
         "med": 190,
         "uq": 200,
         "nCurr": 9,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton - Claudelands/Hamilton Central/Whitiora": {
@@ -1325,28 +1325,28 @@
         "med": 475,
         "uq": 530,
         "nCurr": 2229,
-        "growth": -34.3
+        "growth": null
       },
       "House:all": {
         "lq": 445,
         "med": 555,
         "uq": 615,
         "nCurr": 1098,
-        "growth": 19.8
+        "growth": null
       },
       "Flat:all": {
         "lq": 375,
         "med": 405,
         "uq": 450,
         "nCurr": 579,
-        "growth": 23.6
+        "growth": null
       },
       "Apartment:all": {
         "lq": 350,
         "med": 445,
         "uq": 505,
         "nCurr": 399,
-        "growth": 75.7
+        "growth": null
       }
     },
     "Hamilton - Dinsdale/Hillcrest/Maeroa/Nawton/Queenwood": {
@@ -1355,28 +1355,28 @@
         "med": 565,
         "uq": 610,
         "nCurr": 3912,
-        "growth": -10
+        "growth": null
       },
       "House:all": {
         "lq": 545,
         "med": 595,
         "uq": 645,
         "nCurr": 3348,
-        "growth": 3.6
+        "growth": null
       },
       "Flat:all": {
         "lq": 370,
         "med": 415,
         "uq": 480,
         "nCurr": 276,
-        "growth": 96.4
+        "growth": null
       },
       "Apartment:all": {
         "lq": 400,
         "med": 450,
         "uq": 495,
         "nCurr": 90,
-        "growth": 103.3
+        "growth": null
       }
     },
     "Hamilton - Fairview Downs/Fitzroy/Forest Lake/Glenview": {
@@ -1385,28 +1385,28 @@
         "med": 595,
         "uq": 640,
         "nCurr": 1389,
-        "growth": 66.7
+        "growth": null
       },
       "House:all": {
         "lq": 570,
         "med": 605,
         "uq": 650,
         "nCurr": 1305,
-        "growth": 4.7
+        "growth": null
       },
       "Flat:all": {
         "lq": 410,
         "med": 460,
         "uq": 490,
         "nCurr": 78,
-        "growth": 2.9
+        "growth": null
       },
       "Apartment:all": {
         "lq": 350,
         "med": 360,
         "uq": 400,
         "nCurr": 6,
-        "growth": 0
+        "growth": null
       }
     },
     "Hamilton - Flagstaff/Grandview Heights/Rototuna North": {
@@ -1415,14 +1415,14 @@
         "med": 725,
         "uq": 760,
         "nCurr": 1773,
-        "growth": -51.7
+        "growth": null
       },
       "House:all": {
         "lq": 695,
         "med": 735,
         "uq": 770,
         "nCurr": 1722,
-        "growth": 0.7
+        "growth": null
       }
     },
     "Hamilton - Frankton/Hamilton East/Riverlea": {
@@ -1431,28 +1431,28 @@
         "med": 500,
         "uq": 560,
         "nCurr": 5499,
-        "growth": -13.7
+        "growth": null
       },
       "House:all": {
         "lq": 450,
         "med": 550,
         "uq": 620,
         "nCurr": 3546,
-        "growth": 7.8
+        "growth": null
       },
       "Flat:all": {
         "lq": 375,
         "med": 400,
         "uq": 435,
         "nCurr": 1071,
-        "growth": 51.4
+        "growth": null
       },
       "Apartment:all": {
         "lq": 445,
         "med": 515,
         "uq": 580,
         "nCurr": 489,
-        "growth": 156.6
+        "growth": null
       }
     },
     "Hamilton - Hamilton Lake/Melville/Silverdale": {
@@ -1461,28 +1461,28 @@
         "med": 530,
         "uq": 580,
         "nCurr": 2238,
-        "growth": -23.5
+        "growth": null
       },
       "House:all": {
         "lq": 480,
         "med": 575,
         "uq": 630,
         "nCurr": 1701,
-        "growth": 1.9
+        "growth": null
       },
       "Flat:all": {
         "lq": 380,
         "med": 420,
         "uq": 480,
         "nCurr": 207,
-        "growth": 31
+        "growth": null
       },
       "Apartment:all": {
         "lq": 430,
         "med": 485,
         "uq": 540,
         "nCurr": 138,
-        "growth": 105.9
+        "growth": null
       }
     },
     "Hamilton - Huntington/Rototuna/Western Heights": {
@@ -1491,14 +1491,14 @@
         "med": 725,
         "uq": 760,
         "nCurr": 828,
-        "growth": 0
+        "growth": null
       },
       "House:all": {
         "lq": 695,
         "med": 725,
         "uq": 760,
         "nCurr": 828,
-        "growth": 0
+        "growth": null
       }
     },
     "Hauraki - Entire District incl Waihi/Paeroa/Ngatea": {
@@ -1507,21 +1507,21 @@
         "med": 560,
         "uq": 605,
         "nCurr": 984,
-        "growth": 16.6
+        "growth": null
       },
       "House:all": {
         "lq": 495,
         "med": 565,
         "uq": 605,
         "nCurr": 951,
-        "growth": 6
+        "growth": null
       },
       "Flat:all": {
         "lq": 480,
         "med": 500,
         "uq": 550,
         "nCurr": 33,
-        "growth": 0
+        "growth": null
       }
     },
     "Matamata-Piako - all other suburbs": {
@@ -1530,14 +1530,14 @@
         "med": 515,
         "uq": 580,
         "nCurr": 282,
-        "growth": 17.6
+        "growth": null
       },
       "House:all": {
         "lq": 415,
         "med": 515,
         "uq": 580,
         "nCurr": 282,
-        "growth": 17.6
+        "growth": null
       }
     },
     "Matamata-Piako - Matamata": {
@@ -1546,21 +1546,21 @@
         "med": 600,
         "uq": 655,
         "nCurr": 630,
-        "growth": 37.8
+        "growth": null
       },
       "House:all": {
         "lq": 565,
         "med": 615,
         "uq": 670,
         "nCurr": 576,
-        "growth": 6.9
+        "growth": null
       },
       "Flat:all": {
         "lq": 395,
         "med": 450,
         "uq": 485,
         "nCurr": 54,
-        "growth": 0
+        "growth": null
       }
     },
     "Matamata-Piako - Morrinsville/Te Aroha": {
@@ -1569,21 +1569,21 @@
         "med": 570,
         "uq": 605,
         "nCurr": 867,
-        "growth": 47.7
+        "growth": null
       },
       "House:all": {
         "lq": 545,
         "med": 580,
         "uq": 620,
         "nCurr": 798,
-        "growth": 8.9
+        "growth": null
       },
       "Flat:all": {
         "lq": 380,
         "med": 430,
         "uq": 450,
         "nCurr": 69,
-        "growth": 0
+        "growth": null
       }
     },
     "Otorohanga/Waitomo - Both Districts incl Te Kuiti": {
@@ -1592,21 +1592,21 @@
         "med": 460,
         "uq": 520,
         "nCurr": 855,
-        "growth": 19
+        "growth": null
       },
       "House:all": {
         "lq": 375,
         "med": 465,
         "uq": 530,
         "nCurr": 801,
-        "growth": 3.8
+        "growth": null
       },
       "Flat:all": {
         "lq": 360,
         "med": 410,
         "uq": 410,
         "nCurr": 54,
-        "growth": 0
+        "growth": null
       }
     },
     "South Waikato - all other suburbs": {
@@ -1615,14 +1615,14 @@
         "med": 505,
         "uq": 540,
         "nCurr": 66,
-        "growth": 16.7
+        "growth": null
       },
       "House:all": {
         "lq": 370,
         "med": 505,
         "uq": 540,
         "nCurr": 66,
-        "growth": 16.7
+        "growth": null
       }
     },
     "South Waikato - Putaruru/Tirau": {
@@ -1631,21 +1631,21 @@
         "med": 520,
         "uq": 560,
         "nCurr": 438,
-        "growth": 42.5
+        "growth": null
       },
       "House:all": {
         "lq": 490,
         "med": 540,
         "uq": 575,
         "nCurr": 381,
-        "growth": 9
+        "growth": null
       },
       "Flat:all": {
         "lq": 400,
         "med": 400,
         "uq": 450,
         "nCurr": 57,
-        "growth": 0
+        "growth": null
       }
     },
     "South Waikato - Tokoroa": {
@@ -1654,21 +1654,21 @@
         "med": 485,
         "uq": 525,
         "nCurr": 1392,
-        "growth": 100
+        "growth": null
       },
       "House:all": {
         "lq": 450,
         "med": 500,
         "uq": 540,
         "nCurr": 1182,
-        "growth": 4
+        "growth": null
       },
       "Flat:all": {
         "lq": 400,
         "med": 410,
         "uq": 435,
         "nCurr": 201,
-        "growth": 20
+        "growth": null
       }
     },
     "Taupo - Acacia Bay/Hilltop/Rangatira Park/Waipahihi/Wharewaka": {
@@ -1677,14 +1677,14 @@
         "med": 700,
         "uq": 760,
         "nCurr": 438,
-        "growth": 5
+        "growth": null
       },
       "House:all": {
         "lq": 635,
         "med": 700,
         "uq": 760,
         "nCurr": 438,
-        "growth": 5
+        "growth": null
       }
     },
     "Taupo - all other suburbs": {
@@ -1693,14 +1693,14 @@
         "med": 515,
         "uq": 590,
         "nCurr": 180,
-        "growth": -5.1
+        "growth": null
       },
       "House:all": {
         "lq": 440,
         "med": 515,
         "uq": 590,
         "nCurr": 180,
-        "growth": -5.1
+        "growth": null
       }
     },
     "Taupo - Kinloch/Nukuhau/Richmond Heights/Two Mile Bay": {
@@ -1709,14 +1709,14 @@
         "med": 680,
         "uq": 730,
         "nCurr": 540,
-        "growth": 3
+        "growth": null
       },
       "House:all": {
         "lq": 635,
         "med": 680,
         "uq": 730,
         "nCurr": 540,
-        "growth": 3
+        "growth": null
       }
     },
     "Taupo - Mangakino/Tauhara/Turangi": {
@@ -1725,21 +1725,21 @@
         "med": 490,
         "uq": 545,
         "nCurr": 660,
-        "growth": 16.3
+        "growth": null
       },
       "House:all": {
         "lq": 465,
         "med": 490,
         "uq": 545,
         "nCurr": 642,
-        "growth": 2
+        "growth": null
       },
       "Flat:all": {
         "lq": 430,
         "med": 430,
         "uq": 430,
         "nCurr": 18,
-        "growth": 0
+        "growth": null
       }
     },
     "Taupo - Taupo/Wairakei": {
@@ -1748,21 +1748,21 @@
         "med": 595,
         "uq": 645,
         "nCurr": 786,
-        "growth": 56.3
+        "growth": null
       },
       "House:all": {
         "lq": 580,
         "med": 625,
         "uq": 675,
         "nCurr": 642,
-        "growth": 0.8
+        "growth": null
       },
       "Flat:all": {
         "lq": 415,
         "med": 460,
         "uq": 505,
         "nCurr": 144,
-        "growth": 22
+        "growth": null
       }
     },
     "Thames-Coromandel - all other suburbs": {
@@ -1771,14 +1771,14 @@
         "med": 540,
         "uq": 620,
         "nCurr": 363,
-        "growth": -4
+        "growth": null
       },
       "House:all": {
         "lq": 480,
         "med": 540,
         "uq": 620,
         "nCurr": 363,
-        "growth": -4
+        "growth": null
       }
     },
     "Thames-Coromandel - Thames/Thornton Bay/Whangamata/Whitianga": {
@@ -1787,28 +1787,28 @@
         "med": 550,
         "uq": 605,
         "nCurr": 930,
-        "growth": 14.6
+        "growth": null
       },
       "House:all": {
         "lq": 530,
         "med": 570,
         "uq": 630,
         "nCurr": 792,
-        "growth": 0
+        "growth": null
       },
       "Flat:all": {
         "lq": 385,
         "med": 420,
         "uq": 460,
         "nCurr": 111,
-        "growth": 21.6
+        "growth": null
       },
       "Apartment:all": {
         "lq": 395,
         "med": 480,
         "uq": 495,
         "nCurr": 27,
-        "growth": 0
+        "growth": null
       }
     },
     "Waikato - all other suburbs": {
@@ -1817,21 +1817,21 @@
         "med": 605,
         "uq": 675,
         "nCurr": 762,
-        "growth": 62.5
+        "growth": null
       },
       "House:all": {
         "lq": 550,
         "med": 610,
         "uq": 680,
         "nCurr": 747,
-        "growth": 3.5
+        "growth": null
       },
       "Flat:all": {
         "lq": 385,
         "med": 400,
         "uq": 405,
         "nCurr": 15,
-        "growth": 0
+        "growth": null
       }
     },
     "Waikato - Buckland/Pokeno/Tamahere/Te Kowhai/Whatawhata": {
@@ -1840,21 +1840,21 @@
         "med": 695,
         "uq": 755,
         "nCurr": 540,
-        "growth": 61.6
+        "growth": null
       },
       "House:all": {
         "lq": 655,
         "med": 700,
         "uq": 765,
         "nCurr": 519,
-        "growth": 7.2
+        "growth": null
       },
       "Flat:all": {
         "lq": 410,
         "med": 495,
         "uq": 515,
         "nCurr": 21,
-        "growth": 20.1
+        "growth": null
       }
     },
     "Waikato - Horsham Downs/Raglan/Taupiri/Te Kauwhata": {
@@ -1863,28 +1863,28 @@
         "med": 595,
         "uq": 645,
         "nCurr": 705,
-        "growth": 83.1
+        "growth": null
       },
       "House:all": {
         "lq": 555,
         "med": 620,
         "uq": 670,
         "nCurr": 648,
-        "growth": 6.6
+        "growth": null
       },
       "Flat:all": {
         "lq": 255,
         "med": 355,
         "uq": 405,
         "nCurr": 42,
-        "growth": 7.1
+        "growth": null
       },
       "Apartment:all": {
         "lq": 350,
         "med": 355,
         "uq": 385,
         "nCurr": 15,
-        "growth": 0
+        "growth": null
       }
     },
     "Waikato - Huntly/Meremere": {
@@ -1893,21 +1893,21 @@
         "med": 530,
         "uq": 565,
         "nCurr": 777,
-        "growth": 137.5
+        "growth": null
       },
       "House:all": {
         "lq": 515,
         "med": 545,
         "uq": 585,
         "nCurr": 705,
-        "growth": 9.6
+        "growth": null
       },
       "Flat:all": {
         "lq": 435,
         "med": 450,
         "uq": 450,
         "nCurr": 51,
-        "growth": 0
+        "growth": null
       }
     },
     "Waikato - Ngaruawahia": {
@@ -1916,14 +1916,14 @@
         "med": 580,
         "uq": 625,
         "nCurr": 426,
-        "growth": 25.5
+        "growth": null
       },
       "House:all": {
         "lq": 520,
         "med": 580,
         "uq": 625,
         "nCurr": 426,
-        "growth": 25.5
+        "growth": null
       }
     },
     "Waikato - Tuakau": {
@@ -1932,28 +1932,28 @@
         "med": 610,
         "uq": 645,
         "nCurr": 393,
-        "growth": 53.5
+        "growth": null
       },
       "House:all": {
         "lq": 585,
         "med": 615,
         "uq": 655,
         "nCurr": 381,
-        "growth": 13.8
+        "growth": null
       },
       "Flat:all": {
         "lq": 350,
         "med": 350,
         "uq": 370,
         "nCurr": 9,
-        "growth": 0
+        "growth": null
       },
       "Apartment:all": {
         "lq": 430,
         "med": 430,
         "uq": 430,
         "nCurr": 3,
-        "growth": 0
+        "growth": null
       }
     },
     "Waipa - Cambridge/Leamington": {
@@ -1962,28 +1962,28 @@
         "med": 645,
         "uq": 700,
         "nCurr": 1599,
-        "growth": 41.4
+        "growth": null
       },
       "House:all": {
         "lq": 605,
         "med": 665,
         "uq": 720,
         "nCurr": 1467,
-        "growth": 7.7
+        "growth": null
       },
       "Flat:all": {
         "lq": 385,
         "med": 440,
         "uq": 485,
         "nCurr": 105,
-        "growth": 20.3
+        "growth": null
       },
       "Apartment:all": {
         "lq": 445,
         "med": 495,
         "uq": 540,
         "nCurr": 21,
-        "growth": 0
+        "growth": null
       }
     },
     "Waipa - Kihikihi/Ohaupo/Te Awamutu": {
@@ -1992,21 +1992,21 @@
         "med": 590,
         "uq": 645,
         "nCurr": 1248,
-        "growth": 84.8
+        "growth": null
       },
       "House:all": {
         "lq": 560,
         "med": 605,
         "uq": 660,
         "nCurr": 1158,
-        "growth": 0
+        "growth": null
       },
       "Flat:all": {
         "lq": 380,
         "med": 420,
         "uq": 455,
         "nCurr": 90,
-        "growth": 36.4
+        "growth": null
       }
     }
   },

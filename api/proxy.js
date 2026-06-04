@@ -73,15 +73,16 @@ function cacheGet(suburb, city, beds, propType) {
 
   function tryArea(data) {
     if (!data) return null;
-    // 1. Exact dwelling + exact beds
-    if (dw && data[`${dw}:${bk}`]?.med) return data[`${dw}:${bk}`];
-    // 2. Exact dwelling + all beds
-    if (dw && data[`${dw}:all`]?.med)   return data[`${dw}:all`];
-    // 3. All dwellings + exact beds
-    if (data[bk]?.med)                   return data[bk];
-    // 4. All dwellings + all beds
-    if (data['all']?.med)                return data['all'];
-    return null;
+    // Get the most specific rent figures available
+    let row = null;
+    if (dw && data[`${dw}:${bk}`]?.med) row = data[`${dw}:${bk}`];
+    else if (dw && data[`${dw}:all`]?.med) row = data[`${dw}:all`];
+    else if (data[bk]?.med)               row = data[bk];
+    else if (data['all']?.med)            row = data['all'];
+    if (!row) return null;
+    // Always use 'all' key for growth — most stable signal, avoids bedroom noise
+    const growthRow = data['all'] || row;
+    return { ...row, growth: growthRow.growth };
   }
 
   // Tier 1: SAU2019 — exact suburb match
@@ -153,7 +154,8 @@ module.exports = async function(req, res) {
       // Try cache first (instant)
       const cached = cacheGet(suburb, city, beds, propType);
       if (cached) {
-        const growth = cached.growth >= 0 ? '+' + cached.growth + '%' : cached.growth + '%';
+        const g = cached.growth;
+        const growth = g == null ? null : (g >= 0 ? '+' : '') + g + '%';
         return res.status(200).json({
           source:    'cache:' + cached.source,
           area:      cached.area,

@@ -114,10 +114,11 @@ function blendRows(rows) {
   const wMed   = Math.round(valid.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
   const wLq    = Math.round(valid.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
   const wUq    = Math.round(valid.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
-  const sorted = [...valid].sort((a, b) => (a.period||'').localeCompare(b.period||''));
-  const growth = sorted[0]?.med > 0
-    ? parseFloat(((sorted[sorted.length-1].med - sorted[0].med) / sorted[0].med * 100).toFixed(1))
-    : 4.8;
+  // brr = bond renewal rate (% change) — MBIE's own growth metric, null if unavailable
+  const brrRows = valid.filter(r => r.brr != null);
+  const growth = brrRows.length
+    ? parseFloat((brrRows.reduce((s, r) => s + r.brr * r.nCurr, 0) / brrRows.reduce((s,r) => s+r.nCurr, 0)).toFixed(1))
+    : null;
   return { lq: wLq, med: wMed, uq: wUq, nCurr: totalW, growth };
 }
 

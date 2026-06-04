@@ -29,51 +29,50 @@ const TA_CODES = {
   'Tauranga City':'117','Dunedin City':'079','Palmerston North City':'057',
 };
 
-function toTA(city) {
-  if (TA_CODES[city]) return city;
-  const w = city + ' City';
-  if (TA_CODES[w]) return w;
-  return city;
+// Map property type → MBIE dwelling-type
+function dwellingType(propType) {
+  const t = (propType || '').toLowerCase();
+  if (t === 'house')     return 'House';
+  if (t === 'townhouse') return 'Flat';
+  if (t === 'apartment') return 'Apartment';
+  if (t === 'unit')      return 'Flat';
+  return null; // use all-dwelling fallback
 }
 
-function periodEnding() {
-  const d = new Date(); d.setMonth(d.getMonth() - 2);
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-}
-
-function bedsKey(n) {
-  const b = parseInt(n);
-  if (b >= 5) return '5+';
-  if (b >= 1) return String(b);
-  return 'all';
-}
-
-// Load static cache fresh each time (file is small, disk read is fast)
-function getCache() {
-  try { return JSON.parse(fs.readFileSync(path.join(__dirname, '../data/mbie-waikato.json'), 'utf8')); }
-  catch(e) { return {}; }
-}
-
-// Estimate ladder: SAU2019 → IMR2017 → TA2019 → null
-function cacheGet(suburb, city, beds) {
+// Estimate ladder: SAU2019 → IMR2017 → TA2019
+// Key format in cache: "House:3" or just "3" (all dwellings) or "all" (all beds+dwellings)
+function cacheGet(suburb, city, beds, propType) {
   const cache = getCache();
   const bk    = bedsKey(beds);
   const ta    = toTA(city);
+  const dw    = dwellingType(propType);
+
+  function tryArea(data) {
+    if (!data) return null;
+    // 1. Exact dwelling + exact beds
+    if (dw && data[`${dw}:${bk}`]?.med) return data[`${dw}:${bk}`];
+    // 2. Exact dwelling + all beds
+    if (dw && data[`${dw}:all`]?.med)   return data[`${dw}:all`];
+    // 3. All dwellings + exact beds
+    if (data[bk]?.med)                   return data[bk];
+    // 4. All dwellings + all beds
+    if (data['all']?.med)                return data['all'];
+    return null;
+  }
 
   // Tier 1: SAU2019 — exact suburb match
   if (cache.SAU2019) {
-    // Try exact match first
-    const exact = cache.SAU2019[suburb] || cache.SAU2019[suburb + ' - ' + city];
+    const exact = cache.SAU2019[suburb];
     if (exact) {
-      const row = exact[bk] || exact['all'];
-      if (row?.med) return { ...row, source: 'SAU2019', area: suburb };
+      const row = tryArea(exact);
+      if (row) return { ...row, source: 'SAU2019', area: suburb };
     }
-    // Try partial match (suburb name appears in SAU label)
+    // Partial match
     const subLower = suburb.toLowerCase();
     for (const [area, data] of Object.entries(cache.SAU2019)) {
       if (area.toLowerCase().includes(subLower)) {
-        const row = data[bk] || data['all'];
-        if (row?.med) return { ...row, source: 'SAU2019', area };
+        const row = tryArea(data);
+        if (row) return { ...row, source: 'SAU2019', area };
       }
     }
   }
@@ -83,22 +82,16 @@ function cacheGet(suburb, city, beds) {
     const subLower = suburb.toLowerCase();
     for (const [area, data] of Object.entries(cache.IMR2017)) {
       if (area.toLowerCase().includes(subLower)) {
-        const row = data[bk] || data['all'];
-        if (row?.med) return { ...row, source: 'IMR2017', area };
+        const row = tryArea(data);
+        if (row) return { ...row, source: 'IMR2017', area };
       }
     }
   }
 
   // Tier 3: TA2019 — city level
   if (cache.TA2019?.[ta]) {
-    const row = cache.TA2019[ta][bk] || cache.TA2019[ta]['all'];
-    if (row?.med) return { ...row, source: 'TA2019', area: ta };
-  }
-
-  // Tier 4: TA2019 broadened (drop bedrooms)
-  if (cache.TA2019?.[ta]) {
-    const allBeds = Object.values(cache.TA2019[ta]).find(r => r?.med);
-    if (allBeds) return { ...allBeds, source: 'TA2019-broad', area: ta };
+    const row = tryArea(cache.TA2019[ta]);
+    if (row) return { ...row, source: 'TA2019', area: ta };
   }
 
   return null;
@@ -127,13 +120,14 @@ module.exports = async function(req, res) {
 
     // ── MBIE MARKET RENT — cache-first with live fallback ──
     if (service === 'mbie-rent') {
-      const suburb = params.suburb || '';
-      const city   = params.city   || 'Hamilton';
-      const beds   = params.bedrooms || '3';
-      const meta   = getCache()._meta || {};
+      const suburb   = params.suburb   || '';
+      const city     = params.city     || 'Hamilton';
+      const beds     = params.bedrooms || '3';
+      const propType = params.proptype || 'House';
+      const meta     = getCache()._meta || {};
 
       // Try cache first (instant)
-      const cached = cacheGet(suburb, city, beds);
+      const cached = cacheGet(suburb, city, beds, propType);
       if (cached) {
         const growth = cached.growth >= 0 ? '+' + cached.growth + '%' : cached.growth + '%';
         return res.status(200).json({

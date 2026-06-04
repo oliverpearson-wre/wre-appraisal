@@ -733,7 +733,8 @@ async function fetchMBIERent() {
   setApiStatus(0, 'amber', 'Connecting to MBIE...');
   try {
     const city = S.city || 'Hamilton';
-    const resp = await fetch(`/api/proxy?service=mbie-rent&suburb=${encodeURIComponent(S.suburb)}&city=${encodeURIComponent(city)}&bedrooms=${S.beds}`);
+    const propType = document.getElementById('prop-type').value || 'House';
+    const resp = await fetch(`/api/proxy?service=mbie-rent&suburb=${encodeURIComponent(S.suburb)}&city=${encodeURIComponent(city)}&bedrooms=${S.beds}&proptype=${encodeURIComponent(propType)}`);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const d = await resp.json();
 

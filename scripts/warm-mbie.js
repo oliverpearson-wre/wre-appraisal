@@ -156,52 +156,65 @@ async function main() {
     note:        'Run scripts/warm-mbie.js to refresh',
   };
 
-  // ── PASS 1: SAU2019 (suburb level) ──
+  // ── PASS 1: SAU2019 (suburb level) — fetch per dwelling type ──
   if (!TA_ONLY) {
     console.log('=== Pass 1: SAU2019 (suburb level) ===');
-    const items = await fetchSlice('SAU2019');
-    const grouped = groupByAreaAndBeds(items);
-    let count = 0;
-
     cache.SAU2019 = cache.SAU2019 || {};
-    for (const [area, bedGroups] of Object.entries(grouped)) {
-      if (!isWaikato(area)) continue; // keep only Waikato suburbs
-      cache.SAU2019[area] = {};
-      for (const [beds, rows] of Object.entries(bedGroups)) {
-        const blended = blendRows(rows);
-        if (blended) {
-          cache.SAU2019[area][beds] = blended;
-          count++;
+
+    for (const dwelling of ['House', 'Flat', 'Apartment', null]) {
+      const label = dwelling || 'all-dwellings';
+      console.log(`\n  Dwelling: ${label}`);
+      const extra = dwelling ? { 'dwelling-type': dwelling } : {};
+      const items = await fetchSlice('SAU2019', extra);
+      const grouped = groupByAreaAndBeds(items);
+      let count = 0;
+
+      for (const [area, bedGroups] of Object.entries(grouped)) {
+        if (!isWaikato(area)) continue;
+        if (!cache.SAU2019[area]) cache.SAU2019[area] = {};
+        for (const [beds, rows] of Object.entries(bedGroups)) {
+          const blended = blendRows(rows);
+          if (blended) {
+            const key = dwelling ? `${dwelling}:${beds}` : beds;
+            cache.SAU2019[area][key] = blended;
+            count++;
+          }
         }
       }
+      console.log(`  Stored ${count} Waikato SAU entries for ${label}`);
+      atomicWrite(cache);
+      await sleep(500);
     }
-    console.log(`  Stored ${count} Waikato SAU entries`);
-    atomicWrite(cache);
-    await sleep(500);
   }
 
-  // ── PASS 2: IMR2017 (clustered suburb groups) ──
+  // ── PASS 2: IMR2017 (suburb clusters) — fetch per dwelling type ──
   if (!TA_ONLY) {
     console.log('\n=== Pass 2: IMR2017 (suburb clusters) ===');
-    const items = await fetchSlice('IMR2017');
-    const grouped = groupByAreaAndBeds(items);
-    let count = 0;
-
     cache.IMR2017 = cache.IMR2017 || {};
-    for (const [area, bedGroups] of Object.entries(grouped)) {
-      if (!isWaikato(area)) continue;
-      cache.IMR2017[area] = {};
-      for (const [beds, rows] of Object.entries(bedGroups)) {
-        const blended = blendRows(rows);
-        if (blended) {
-          cache.IMR2017[area][beds] = blended;
-          count++;
+
+    for (const dwelling of ['House', 'Flat', 'Apartment', null]) {
+      const label = dwelling || 'all-dwellings';
+      const extra = dwelling ? { 'dwelling-type': dwelling } : {};
+      const items = await fetchSlice('IMR2017', extra);
+      const grouped = groupByAreaAndBeds(items);
+      let count = 0;
+
+      for (const [area, bedGroups] of Object.entries(grouped)) {
+        if (!isWaikato(area)) continue;
+        if (!cache.IMR2017[area]) cache.IMR2017[area] = {};
+        for (const [beds, rows] of Object.entries(bedGroups)) {
+          const blended = blendRows(rows);
+          if (blended) {
+            const key = dwelling ? `${dwelling}:${beds}` : beds;
+            cache.IMR2017[area][key] = blended;
+            count++;
+          }
         }
       }
+      console.log(`  IMR ${label}: ${count} entries`);
+      atomicWrite(cache);
+      await sleep(500);
     }
-    console.log(`  Stored ${count} Waikato IMR entries`);
-    atomicWrite(cache);
-    await sleep(500);
   }
 
   // ── PASS 3: TA2019 (city level fallback) ──

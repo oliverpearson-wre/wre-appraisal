@@ -1,3 +1,4 @@
+// proxy.js — cache-first MBIE strategy — deployed 2026-06-04
 const https = require('https');
 const fs    = require('fs');
 const path  = require('path');

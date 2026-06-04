@@ -29,6 +29,30 @@ const TA_CODES = {
   'Tauranga City':'117','Dunedin City':'079','Palmerston North City':'057',
 };
 
+function toTA(city) {
+  if (TA_CODES[city]) return city;
+  const w = city + ' City';
+  if (TA_CODES[w]) return w;
+  return city;
+}
+
+function bedsKey(n) {
+  const b = parseInt(n);
+  if (b >= 5) return '5+';
+  if (b >= 1) return String(b);
+  return 'all';
+}
+
+function periodEnding() {
+  const d = new Date(); d.setMonth(d.getMonth() - 2);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function getCache() {
+  try { return JSON.parse(fs.readFileSync(path.join(__dirname, '../data/mbie-waikato.json'), 'utf8')); }
+  catch(e) { return {}; }
+}
+
 // Map property type → MBIE dwelling-type
 function dwellingType(propType) {
   const t = (propType || '').toLowerCase();

@@ -797,6 +797,17 @@ async function fetchMBIEViaBrave() {
 }
 
 
+function applyMBIEData(med, uq, lq, growth) {
+  S.medRent = med; S.uqRent = uq; S.lqRent = lq; S.rentGrowth = growth;
+  document.getElementById('med-rent').textContent    = '$' + med;
+  document.getElementById('uq-rent').textContent     = '$' + uq;
+  document.getElementById('lq-rent').textContent     = '$' + lq;
+  document.getElementById('rent-growth').textContent = growth;
+  renderDOMChart();
+  renderListingsChart();
+  fetchStatsNZ();
+}
+
 async function fetchStatsNZ() {
   setApiStatus(1, 'amber', 'Connecting...');
   // Hamilton suburb defaults (from 2023 census)

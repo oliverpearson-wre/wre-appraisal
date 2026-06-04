@@ -61,14 +61,13 @@ function httpsGet(path, timeoutMs = 240000) {
   });
 }
 
-async function fetchStats(taCode, bedrooms) {
+async function fetchStats(taCode) {
   const period = periodEnding();
   const qs = new URLSearchParams({
     'period-ending':   period,
     'num-months':      '12',
     'area-definition': 'territorial-authority-2019',
     'area-codes':      taCode,
-    'num-bedrooms':    bedrooms,
   }).toString();
 
   const url = `${BASE_PATH}/statistics?${qs}`;
@@ -127,32 +126,42 @@ async function main() {
     if (!cache[taName]) cache[taName] = { [taCode]: {} };
     if (!cache[taName][taCode]) cache[taName][taCode] = {};
 
-    for (const beds of BEDROOMS) {
-      process.stdout.write(`  ${beds}bd ... `);
-      const items = await fetchStats(taCode, beds);
+    process.stdout.write(`  Fetching all bedrooms... `);
+    const items = await fetchStats(taCode);
 
-      if (items === null) {
-        if (!DRY_RUN) errors++;
-        process.stdout.write('skip\n');
-        continue;
-      }
-      if (items.length === 0) {
-        suppressed++;
-        process.stdout.write('suppressed (<5 bonds)\n');
-        continue;
-      }
+    if (items === null) {
+      errors++;
+      process.stdout.write('error\n');
+      continue;
+    }
+    if (items.length === 0) {
+      suppressed++;
+      process.stdout.write('suppressed\n');
+      continue;
+    }
 
-      // Weighted blend by nCurr
-      const rows  = items.filter(r => r.med != null && r.nCurr > 0);
-      if (!rows.length) { suppressed++; process.stdout.write('all null\n'); continue; }
+    process.stdout.write(`${items.length} rows received\n`);
 
-      const totalW = rows.reduce((s, r) => s + r.nCurr, 0);
-      const wMed   = Math.round(rows.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
-      const wLq    = Math.round(rows.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
-      const wUq    = Math.round(rows.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
+    // Group rows by nB (num bedrooms field)
+    const byBeds = {};
+    for (const row of items) {
+      const b = String(row.nB || row.numBedrooms || row.bedrooms || 'NA');
+      if (!byBeds[b]) byBeds[b] = [];
+      byBeds[b].push(row);
+    }
 
-      // Growth from oldest to newest period in results
-      const sorted  = [...rows].sort((a, b) => (a.period||'').localeCompare(b.period||''));
+    console.log('  Bedroom groups found:', Object.keys(byBeds).join(', '));
+
+    for (const [beds, rows] of Object.entries(byBeds)) {
+      const validRows = rows.filter(r => r.med != null && r.nCurr > 0);
+      if (!validRows.length) { console.log(`  ${beds}bd: all suppressed`); continue; }
+
+      const totalW = validRows.reduce((s, r) => s + r.nCurr, 0);
+      const wMed   = Math.round(validRows.reduce((s, r) => s + r.med * r.nCurr, 0) / totalW / 5) * 5;
+      const wLq    = Math.round(validRows.reduce((s, r) => s + r.lq  * r.nCurr, 0) / totalW / 5) * 5;
+      const wUq    = Math.round(validRows.reduce((s, r) => s + r.uq  * r.nCurr, 0) / totalW / 5) * 5;
+
+      const sorted  = [...validRows].sort((a, b) => (a.period||'').localeCompare(b.period||''));
       const newest  = sorted[sorted.length - 1];
       const oldest  = sorted[0];
       const growth  = oldest.med > 0
@@ -161,18 +170,17 @@ async function main() {
 
       cache[taName][taCode][beds] = { lq: wLq, med: wMed, uq: wUq, nCurr: totalW, growth };
       fetched++;
-      process.stdout.write(`$${wLq}/$${wMed}/$${wUq} (n=${totalW})\n`);
-
-      // Politeness delay between real calls
-      await sleep(250);
+      console.log(`  ${beds}bd: $${wLq}/$${wMed}/$${wUq} (n=${totalW})`);
     }
 
-    // Atomic write after each TA so a crash doesn't lose all work
+    // Atomic write after each TA
     if (!DRY_RUN) {
       const tmp = OUT_FILE + '.tmp';
       fs.writeFileSync(tmp, JSON.stringify(cache, null, 2));
       fs.renameSync(tmp, OUT_FILE);
     }
+
+    await sleep(250);
   }
 
   console.log(`\nDone. fetched=${fetched} suppressed=${suppressed} errors=${errors}`);
